@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+<!--
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="fable.category.tools"
+            name="Tools">
+      </category>
+      <view
+            allowMultiple="true"
+            category="fable.category.tools"
+            class="fable.framework.ui.views.JmolView"
+            icon="images/jmol.gif"
+            id="fable.framework.ui.views.JmolView"
+            name="Jmol">
+      </view>
+      <view
+            allowMultiple="true"
+            category="fable.category.tools"
+            class="fable.framework.ui.views.ColumnFilePlotView"
+            icon="images/colfile_plot.gif"
+            id="fable.framework.ui.views.ColumnFilePlotView"
+            name="ColumnFile Plot">
+      </view>
+      <view
+            allowMultiple="true"
+            category="fable.category.tools"
+            class="fable.framework.ui.views.ColumnFileContentView"
+            id="fable.framework.ui.views.ColumnContentView"
+            name="ColumnFile Table">
+      </view>
+   </extension>
+   -->
+    <extension
+          point="org.eclipse.ui.viewActions">
+      <viewContribution
+             id="fable.framework.ui.actions.openJmolFileAction"
+             targetID="fable.framework.ui.views.JmolView">
+          <action
+                class="fable.framework.ui.actions.OpenJmolFile"
+                icon="images/jmol_open.gif"
+                id="fable.framework.ui.views.browseOpenJmolFileAction"
+                label="Open Structure"
+                style="push"
+                toolbarPath="additions"
+                tooltip="Open structure file and display with Jmol">
+          </action>
+       </viewContribution>
+      <viewContribution
+            id="fable.framework.ui.actions.openColumnFileAction"
+            targetID="fable.framework.ui.views.ColumnFilePlotView">
+         <action
+               class="fable.framework.ui.actions.OpenChartOptions"
+               icon="images/chartOptions.gif"
+               id="fable.framework.ui.actions.OpenChartOptions"
+               label="Open chart options"
+               toolbarPath="additions">
+         </action>
+         <action
+               class="fable.framework.ui.actions.SaveColumn"
+               icon="images/save.gif"
+               id="fable.framework.ui.actions.SaveColumn"
+               label="save"
+               style="push"
+               toolbarPath="additions"
+               tooltip="Save currrent column file">
+         </action>
+         <action
+               class="fable.framework.ui.actions.OpenColumnFilePlot"
+               icon="images/colfile_open.gif"
+               id="fable.framework.views.browseOpenColumnFileAction"
+               label="Open ColumnFile(s)"
+               style="push"
+               toolbarPath="additions"
+               tooltip="Open file(s) with data in columns to plot">
+         </action>
+      </viewContribution>
+    </extension>
+    
+    <extension
+          point="org.eclipse.ui.menus">
+           <menuContribution
+locationURI="menu:window?after=newEditor">
+<command
+commandId="org.eclipse.ui.ToggleCoolbarAction"
+tooltip="%menu.toggleCoolbar.tooltip"
+style="push">
+<visibleWhen
+checkEnabled="false">
+<or>
+<with
+variable="activeWorkbenchWindow.isCoolbarVisible">
+<equals
+value="false">
+</equals>
+</with>
+<with
+variable="activeWorkbenchWindow.isPerspectiveBarVisible">
+<equals
+value="false">
+</equals>
+</with>
+</or>
+</visibleWhen>
+</command>
+</menuContribution>
+       <menuContribution
+             locationURI="menu:org.eclipse.ui.main.menu?before=window">
+          <menu
+                id="fable.framework.views.toolMenu"
+                label="Tools">
+             <separator
+                   name="additions"
+                   visible="false">
+             </separator>
+          </menu>
+       </menuContribution>
+    </extension>
+    <extension
+          point="org.eclipse.ui.editors">
+       <!--
+       <editor
+             class="fable.framework.ui.editors.ColumnFileEditor"
+             default="false"
+             extensions="flt, gff"
+             icon="images/colfile_open.gif"
+             id="fable.framework.ui.ColumnFileEditor"
+             name="Column File Editor">
+       </editor>
+       <editor
+             class="fable.framework.ui.editors.ColumnFilePlotEditor"
+             default="true"
+             extensions="flt, gff"
+             icon="images/colfile_plot.gif"
+             id="fable.framework.ui.ColumnFilePlotEditor"
+             name="Plot Editor">
+       </editor>
+       -->
+       <editor
+             class="fable.framework.ui.editors.GeneralInputEditor"
+             default="false"
+             extensions="inp, fab, fit"
+             id="fable.framework.ui.editors.GeneralInputEditor"
+             name="Fable General Input Editor">
+       </editor>
+       <editor
+             class="fable.framework.ui.editors.JmolEditor"
+             default="false"
+             filenames="*.pdb"
+             icon="images/jmol.gif"
+             id="fable.framework.ui.editors.JmolEditor"
+             name="Molecule Editor">
+       </editor>
+    </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.mol"
+            nameFilter="*.mol"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.pdb"
+            nameFilter="*.pdb"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.cif"
+            nameFilter="*.cif"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.sdf"
+            nameFilter="*.sdf"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.mol2"
+            nameFilter="*.mol2"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.xyz"
+            nameFilter="*.xyz"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.alc"
+            nameFilter="*.alc"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.gro"
+            nameFilter="*.gro"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.hin"
+            nameFilter="*.hin"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.mdl"
+            nameFilter="*.mdl"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.cml"
+            nameFilter="*.cml"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+            <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.spt"
+            nameFilter="*.spt"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.pqr"
+            nameFilter="*.pqr"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.jme"
+            nameFilter="*.jme"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+      <objectContribution
+            adaptable="true"
+            id="fable.framework.ui.objectContribution.jmol.out"
+            nameFilter="*.out"
+            objectClass="org.eclipse.core.resources.IFile">
+        <action
+              class="fable.framework.ui.actions.OpenJmolFileResource"
+              enablesFor="1"
+              icon="images/jmol.gif"
+              id="fable.framework.ui.openJmolFileResource"
+              label="Open Structure File with Jmol"
+              menubarPath="fable.actions.openWithOtherMenu/separator1">
+        </action>
+      </objectContribution>
+    </extension>
+    <extension
+          point="org.eclipse.ui.commands">
+       <category
+             id="fable.framework.ui.category"
+             name="Fable Framework">
+       </category>
+       <command
+             categoryId="fable.framework.ui.category"
+             defaultHandler="fable.python.handlers.RecordScriptHandler"
+             id="fable.framework.ui.recordScript"
+             name="Record Script">
+       </command>
+       <command
+             categoryId="fable.framework.ui.category"
+             defaultHandler="fable.python.handlers.OpenPythonConsoleHandler"
+             id="fable.framework.ui.openPythonConsole"
+             name="Open Console">
+       </command>
+       <command
+             categoryId="fable.framework.ui.category"
+             defaultHandler="fable.framework.ui.handlers.OpenColumnFileEditorHandler"
+             id="fable.framework.ui.openColFilePlot"
+             name="Open Column File Plot">
+       </command>
+       <command
+             categoryId="fable.framework.ui.category"
+             defaultHandler="fable.framework.ui.handlers.OpenJmolFileHandler"
+             id="fable.framework.ui.openJmolFile"
+             name="Open Structure File with Jmol">
+       </command>
+       <command
+             categoryId="fable.framework.ui.category"
+             defaultHandler="fable.python.handlers.InfoPythonHandler"
+             id="fable.framework.ui.pythonInfo"
+             name="Python Info">
+       </command>
+    </extension>
+    
+
+</plugin>

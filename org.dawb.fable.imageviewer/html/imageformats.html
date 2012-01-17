@@ -1,0 +1,105 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>ImageViewer - Image formats</TITLE>
+<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
+<META NAME="CREATED" CONTENT="20070822;22045596">
+<META NAME="CHANGEDBY" CONTENT="Andy Gotz">
+<META NAME="CHANGED" CONTENT="20080805;9335400">
+<STYLE TYPE="text/css">
+        <!--
+                P { text-align: justify }
+                H2 { margin-bottom: 0.26cm; color: #8b4513; text-align: left }
+                A:link { font-weight: bold }
+        -->
+        </STYLE>
+<link href="style.css" rel="stylesheet" type="text/css">
+</link>
+<link href="help.css" rel="stylesheet" type="text/css">
+</link>
+</HEAD>
+<BODY LANG="fr-FR" LINK="#8b4513" VLINK="#8b4513" DIR="LTR">
+<DIV ID="header" DIR="LTR"> Image Formats </DIV>
+<P STYLE="margin-bottom: 0cm"><A HREF="http://fable.wiki.sourceforge.net/fabio">Fabio</A> currently
+  supports the following image file formats :</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<UL>
+  <LI>
+    <P STYLE="margin-bottom: 0cm">edf – the ESRF Data Format (EDF) was created
+      at the ESRF. Some documentation is available <A HREF="http://www.esrf.fr/computing/scientific/SAXS/doc/SaxsKeywords/SaxsKeywords.pdf">here</A> but <SPAN STYLE="text-decoration: none"><SPAN STYLE="font-style: normal"><B>be
+      warned</B></SPAN></SPAN> - <I>there is NO official version of EDF</I>,
+      every program implements its own version of EDF. Fabio tries to read as
+      many versions of EDF as possible. Most data taken with ccd cameras at the
+      ESRF will be stored in this format.</P>
+  <LI>
+    <P STYLE="margin-bottom: 0cm">cor – this is the EDF format with a different
+      extension name. Spd (sometimes used for doing preprocessing) creates files
+      with .cor extension by default</P>
+  <LI>
+    <P STYLE="margin-bottom: 0cm">ccd – this is the EDF format with a different
+      extension name (the Claudio case).</P>
+  <LI>
+    <P STYLE="margin-bottom: 0cm">pnm – Portable aNyMap format is part of the <A HREF="http://en.wikipedia.org/wiki/Portable_pixmap">Netpbm</A> format
+      family</P>
+  <LI>
+    <P STYLE="margin-bottom: 0cm">pgm – Portable GrayMap format is part of the <A HREF="http://en.wikipedia.org/wiki/Portable_pixmap">Netpbm</A> format
+      family</P>
+  <LI>
+    <P STYLE="margin-bottom: 0cm">pbm – Portable BitMap format is part of the <A HREF="http://en.wikipedia.org/wiki/Portable_pixmap">Netpbm</A> format
+      family</P>
+  <LI>
+    <P STYLE="margin-bottom: 0cm">tif – <A HREF="http://en.wikipedia.org/wiki/Tiff">Tagged
+        Image File</A> format is a format for storing images. It is now under
+        control of Adobe.</P>
+  <LI>
+    <P STYLE="margin-bottom: 0cm">tiff – <A HREF="http://en.wikipedia.org/wiki/Tiff">Tagged
+        Image File</A> format is a format for storing images. It is now under
+        control of Adobe.</P>
+  <LI>
+    <P STYLE="margin-bottom: 0cm">img – <A HREF="http://www.adsc-xray.com/">ADSC</A> file
+      format</P>
+  <LI>
+    <P STYLE="margin-bottom: 0cm">mccd – mar ccd file format from <A HREF="http://www.mar-usa.com/products/sx_165.htm">Rayonix</A></P>
+  <LI>
+    <P STYLE="margin-bottom: 0cm">mar2300 – file extension .mar345</P>
+  <LI>
+    <P STYLE="margin-bottom: 0cm">.dddd – Bruker file format</P>
+</UL>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Any zipped version of the above formats with the
+  extensions .gz or .bz2 will also be read.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">To change the files to read and display in the
+  navigator use the Windows -&gt; Preferences -&gt; Fabio files. The preferences
+  windows will be displayed :</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><IMG SRC="preferences_files.png" NAME="graphics1" ALIGN=BOTTOM BORDER=1></P>
+<P STYLE="margin-bottom: 0cm">Note that aentering a single dot will allow files
+  with no extension, presumably binary files, to be read and displayed. On the
+  other hand it will allow every file that has no extension to be displayed,
+  whether it is an image or not. If you need to read files with no extensions
+  and this is a problem, then you can keep only binary files in the folder, or
+  have all the files end in a common pattern, which you can enter above.<BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Add or remove suffixes to the list of extensions
+  in the text window.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<H1>Support for new formats</H1>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">There is help on the wiki (<A HREF="http://fable.wiki.sourceforge.net/fabio">adding
+    new file formats</A>) on how to add support for your own file formats to
+    fabio.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P><BR>
+  <BR>
+</P>
+</BODY>
+</HTML>

@@ -1,0 +1,16 @@
+README for Fable.Python 
+=======================
+
+Andy Gotz @ esrf.eu
+-------------------
+
+The fable.python plugin is a workbench for interactive Python scripting
+and plotting inside Fable. It has views to open a Python console with
+its own dedicated Python interpreter (via Jep). Python scripts can be 
+executed by typing them in or by executing a script in a file. Data
+can be plotted using the command plot.1d() (in the future 2d and 3d plotting
+will be added). 
+
+The aim of the fable.python workbench is to make it easy to switch between
+the graphical user interface and Python. Fable.python could also be used
+as a standalone Python workbench.

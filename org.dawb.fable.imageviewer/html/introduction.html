@@ -1,0 +1,56 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>ImageViewer - Introduction</TITLE>
+<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
+<META NAME="CREATED" CONTENT="20070822;21263250">
+<META NAME="CHANGEDBY" CONTENT="Andy Gotz">
+<META NAME="CHANGED" CONTENT="20080805;9263900">
+<STYLE TYPE="text/css">
+        <!--
+                P { text-align: justify }
+                H2 { margin-bottom: 0.26cm; color: #8b4513; text-align: left }
+                A:link { font-weight: bold }
+        -->
+        </STYLE>
+<link href="style.css" rel="stylesheet" type="text/css">
+</link>
+<link href="help.css" rel="stylesheet" type="text/css">
+</link>
+</HEAD>
+<BODY LANG="fr-FR" LINK="#8b4513" VLINK="#8b4513" DIR="LTR">
+<DIV ID="header" DIR="LTR"> Introduction </DIV>
+<P>ImageViewer is a program for viewing mainly diffraction images written for
+  the <A HREF="http://fable.sourceforge.net/">Fable</A> project. It is used to
+  display images as a standalone program or as a plugin in other Fable programs
+  e.g. Peaksearch and Preprocessor.</P>
+<P>This application part of a series of Fable graphical applications based on <A HREF="http://www.eclipse.org/">Eclipse</A>. </P>
+<P><IMG SRC="gettingstarted.png" NAME="graphics1" ALIGN=BOTTOM BORDER=0></P>
+<P>ImageViewer is written in Java and does all plotting using pure java libraries
+  (JLChart (from Jean-Luc Pons) for 1D, SWT's Image for 2D and OpenGL for 3D).
+  This makes ImageViewer plotting portable across platforms. </P>
+<P>ImageViewer uses <A HREF="http://fable.wiki.sourceforge.net/fabio">fabio</A> (a
+  Fable input/ouput library written in Python) for reading various image formats.
+  Because fabio is written in Python, ImageViewer needs to have a <A HREF="http://www.python.org/">Python</A> interpreter
+  (2.5) installed in order to read files. The link between Java and Python is
+  done using <A HREF="http://jepp.sourceforge.net/">Jepp</A>. Fabio is packaged
+  as part of ImageViewer. However the following Python packages have to be installed
+  in order for fabio to work: <A HREF="http://numpy.scipy.org/">NumPy</A> and <A HREF="http://www.pythonware.com/products/pil/">PIL</A>.</P>
+<P>ImageViewer is intended to be a workbench for crystallographers to look at
+  images and do basic analysis on them. Suggestions on how to improve ImageViewer
+  and typical tools which should to be added should be send to <A HREF="mailto:fable-talk@lists.sourceforge.net">fable-talk@lists.sourceforge.net</A>.
+  Code contributions in the form of Python or Java code are also welcomed.</P>
+<P>Help is available on the following topics : </P>
+<UL>
+  <LI>
+    <P><A HREF="gettingstarted.html">Getting started</A></P>
+  <LI>
+    <P><A HREF="imageviewer.html">ImageViewer</A></P>
+  <LI>
+    <P><A HREF="imageformats.html">Image Formats</A></P>
+  <LI>
+    <P><A HREF="troubleshooting.html">Troubleshooting</A></P>
+</UL>
+</BODY>
+</HTML>

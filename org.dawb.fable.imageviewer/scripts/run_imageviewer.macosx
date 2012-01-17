@@ -1,0 +1,16 @@
+#/bin/bash
+#
+# script to run imageviewer on MacOSX
+#
+# some advanced bash and unix tricks to find the imageviewer install directory
+## Linux
+LSOF=$(lsof -p $$ | grep -E "/"$(basename $0)"$")
+IMAGEVIEWER_SCRIPT=$(echo $LSOF | sed -r s/'^([^\/]+)\/'/'\/'/1 2>/dev/null)
+if [ $? -ne 0 ]; then
+## OSX
+  IMAGEVIEWER_SCRIPT=$(echo $LSOF | sed -E s/'^([^\/]+)\/'/'\/'/1 2>/dev/null)
+fi
+IMAGEVIEWER_HOME=$(dirname $IMAGEVIEWER_SCRIPT)
+export PYTHONPATH=$IMAGEVIEWER_HOME/python/macosx:$PYTHONPATH
+$IMAGEVIEWER_HOME/imageviewer
+

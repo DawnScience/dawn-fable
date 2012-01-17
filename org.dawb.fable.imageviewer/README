@@ -1,0 +1,41 @@
+Imageviewer
+===========
+
+Version 1.4.4 - 21 March 2008
+
+Acknowledgements : gui   - Andy Gotz and Gaelle Suchet (esrf.eu)
+                   fabio - Jon Wright (esrf.eu), Henning Osholm Sørensen and Erik Knudsen (risoe.dk)
+
+The Fable Imageviewer program is an Eclipse based program written in Java 
+for displaying diffraction images and their metadata i.e. headers. Imageviewer 
+has been developed in order to be able to display images in Fable java programs 
+but  it can be used as a standalone program too.
+
+Fable imageviewer is based on the fabio Python module for reading files. 
+Fabio supports a wide variety of formats e.g. EDF, TIF, Bruker, ADSC,
+Mar345, MarCCD, OXD, GE. In order to use fabio to read files you must install 
+Python 2.5 and the modules fabio, pil and numeric and (on Linux) set the environment
+variable LD_PRELOAD to point to your Python shared object e.g. /usr/lib/libpython2.5.so.1.0.
+In the future imageviewer will package these modules for you.
+
+Contributions in the form of ideas, Eclipse plugins, java code and/or python 
+modules are welcomed
+
+INSTALL
+=======
+
+To install Imageviewer all you need to do is unzip the fable.imageviewer in a
+directory of your choice. As mentioned above you need to have Python, numpy and PIL
+installed in order for fabio to work. Fable.imageviewer includes these packages
+for you. Use the run_imageviewer script for your platform to run imageviewer :
+
+- Linux : run_imageviewer.sh
+
+- Windows : run_imageviewer.bat
+
+- MacOSX : run_imageviewer.macosx
+
+Questions
+---------
+
+Send questions and bug reports to fable-talk@lists.sourceforge.fr

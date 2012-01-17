@@ -1,0 +1,31 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Lwjgl Opengl
+Bundle-SymbolicName: org.lwjgl.opengl
+Bundle-Version: 1.0.0.qualifier
+Bundle-NativeCode: 
+ /lib/linux/libjinput-linux.so; /lib/linux/liblwjgl.so; /lib/linux/libopenal.so; osname=Linux; processor=x86,
+ /lib/linux64/libjinput-linux64.so; /lib/linux64/liblwjgl64.so; /lib/linux64/libopenal64.so; osname=Linux; processor=x86_64,
+ /lib/win32/jinput-dx8.dll; /lib/win32/jinput-raw.dll; lib/win32/lwjgl.dll; lib/win32/OpenAL32.dll; osname=Win32; processor=x86,
+ /lib/win64/jinput-dx8.dll; /lib/win64/jinput-raw.dll; lib/win64/lwjgl64.dll; lib/win64/OpenAL64.dll; osname=Win32; processor=x86_64,
+ /lib/macosx/libjinput-osx.jnilib; /lib/macosx/liblwjgl.jnilib; lib/macosx/openal.dylib; osname=macosx; osname=Mac OS X;  osname=MacOS; processor=x86,
+ /lib/macosx/libjinput-osx.jnilib; /lib/macosx/liblwjgl.jnilib; lib/macosx/openal.dylib; osname=macosx; osname=Mac OS X;  osname=MacOS; processor=x86_64,
+ *
+Bundle-ClassPath: jinput.jar,
+ lwjgl.jar,
+ lwjgl_util.jar
+Export-Package: net.java.games.input;uses:="net.java.games.util.plugins",
+ net.java.games.util,
+ net.java.games.util.plugins,
+ net.java.games.util.plugins.test;uses:="net.java.games.util.plugins,javax.swing",
+ org.lwjgl,
+ org.lwjgl.input;uses:="net.java.games.input,org.lwjgl.opengl",
+ org.lwjgl.openal,
+ org.lwjgl.opengl;uses:="com.apple.eawt,new org.lwjgl.opengl,org.lwjgl",
+ org.lwjgl.util;uses:="new org.lwjgl.util,org.lwjgl.opengl,javax.sound.sampled",
+ org.lwjgl.util.glu,
+ org.lwjgl.util.input;uses:="org.lwjgl.input",
+ org.lwjgl.util.jinput;uses:="net.java.games.util.plugins,net.java.games.input",
+ org.lwjgl.util.vector
+Bundle-Vendor: org.lwjgl
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <!--
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            allowMultiple="true"
+            class="fable.python.views.PythonPlotView"
+            id="fable.python.views.PythonPlotView"
+            name="Python Plot">
+      </view>
+   </extension>
+   -->
+    <extension
+          point="org.eclipse.help.toc">
+       <toc
+             file="toc.xml"
+             primary="true">
+       </toc>
+    </extension>
+    <extension
+          point="org.eclipse.ui.preferencePages">
+       <page
+             category="org.edna.workbench.preferences.root"
+             class="fable.python.preferences.PythonPreferencePage"
+             id="fable.python.preferences.PythonPreferencePage"
+             name="Python">
+       </page>
+    </extension>
+    <extension
+          point="org.eclipse.core.runtime.preferences">
+       <initializer
+             class="fable.python.preferences.PreferencesInitializer">
+       </initializer>
+    </extension>
+
+</plugin>

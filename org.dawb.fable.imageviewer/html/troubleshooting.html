@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>ImageViewer - Troubleshooting</TITLE>
+<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.2  (Linux)">
+<META NAME="CREATED" CONTENT="20070822;22045596">
+<META NAME="CHANGED" CONTENT="20080321;14545100">
+<STYLE TYPE="text/css">
+	<!--
+		P { text-align: justify }
+		H2 { margin-bottom: 0.26cm; color: #8b4513; text-align: left }
+		A:link { font-weight: bold }
+	-->
+	</STYLE>
+<link href="style.css" rel="stylesheet" type="text/css">
+</link>
+<link href="help.css" rel="stylesheet" type="text/css">
+</link>
+</HEAD>
+<BODY LANG="fr-FR" DIR="LTR">
+<DIV ID="header" DIR="LTR"> Troubleshooting </DIV>
+<P>The main problems are :</P>
+<H2>Java problems</H2>
+<UL>
+  <LI>
+    <P>You need Java 1.5 or later to be installed and in your PATH variable.</P>
+</UL>
+<H2>Python problems</H2>
+<UL>
+  <LI>
+    <P>Not having Python installed and in your PATH variable. Make sure you can
+      start Python from your standard shell or command window. You can test your
+      Python setup by using Tools -&gt; Python -&gt; Python Information.... It will
+      indicate which modules can be loaded and which can not, as well as give
+      you information on your PATH and PYTHONPATH. The PYTHONPATH can be set
+      in Window -&gt; Preferences -&gt; Python. </P>
+  <LI>
+    <P ALIGN=LEFT>If you get this error :<BR>
+      <BR>
+      <IMG SRC="pythonimportfailed.png" NAME="graphics1" ALIGN=BOTTOM BORDER=0><BR>
+      <BR>
+      Then the problem could be because </P>
+</UL>
+<OL>
+  <LI>
+    <P ALIGN=LEFT>on Linux you do not have LD_PRELOAD not pointing to your Python
+      shared object. The solution is to define LD_PRELOAD and start ImageViewer
+      again.</P>
+  <LI>
+    <P ALIGN=LEFT>on MacOSX you have to have a smybolic link from libjep.dylib
+      to /Library/Java/Extensions. You can do this like this : <BR>
+      <BR>
+      <FONT FACE="Monospace"><FONT SIZE=2>sudo ln -s $IMAGEVIEWER_HOME/plugins/jep_2.0.1/lib/macosx/libjep.dylib
+      /Library/Java/Extensions/libjep.jnilib</FONT></FONT></P>
+</OL>
+<OL START=3>
+  <LI>
+    <P ALIGN=LEFT>on Windows, Linux or MacOS this can happen because you do not
+      have the python package listed in the window installed. You need the following
+      Python packages installed – <A HREF="http://numpy.scipy.org/">NumPy</A> and <A HREF="http://www.pythonware.com/products/pil/">PIL</A>.
+      This should also be packaged with fable.ImageViewer in $IMAGEVIEWER_HOME/python/$platform</P>
+</OL>
+<UL>
+  <LI>
+    <P ALIGN=LEFT>If the package not found is fabio then probably PYTHONPATH
+      is not correctly positioned before starting ImageViewer. PYTHONPATH must
+      contain the following :<BR>
+      <BR>
+      $IMAGEVIEWER_HOME/python/fabio/$platform/<BR>
+      <BR>
+      where $platform is one of win32, linux, or macosx. <BR>
+      <BR>
+      If you are an expert user you can set PYTHONPATH to point to your local
+      copy of Fabio.</P>
+</UL>
+<P><BR>
+  <BR>
+</P>
+</BODY>
+</HTML>

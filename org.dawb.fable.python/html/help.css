@@ -1,0 +1,60 @@
+h1 {
+color : saddlebrown ;
+text-align:Left;
+margin-bottom:20px;
+border-bottom:solid  saddlebrown 0.02em;
+border-top:  solid  	saddlebrown 0.02em;
+font-stretch:condensed;
+font-variant:small-caps;
+
+}
+
+h2 {
+color : saddlebrown ;
+text-align:Left;
+margin-bottom:10px;
+margin-left: 1em;
+}
+
+A {
+font-weight:bold;
+color: saddlebrown ;
+text-decoration:underline;
+}
+
+body{
+text-align:justify;
+margin-left: 1.5em;
+margin-bottom:10px;
+}
+div#header {
+ 
+  padding:1.5em 1.5em 1.5em 1.5em;
+  border-top:  0.05em saddlebrown outset ;
+  border-bottom: 0.05em inset saddlebrown ;
+  background-image:url(./fable.jpg);
+  background-repeat:no-repeat;
+  background-position:center left;
+  text-align:center ;
+  font-size: x-large ;
+  font-weight:bold;
+  color:black;
+  margin-bottom:50px;
+  font-stretch:expanded;
+  
+}
+
+div#bodyH2 {
+ text-align:justify;
+ margin-left: 2em;
+
+text-align:justify;
+margin-bottom:10px;
+margin-left: 2em;
+  
+}
+
+ul 
+{
+list-style-type: disc
+}

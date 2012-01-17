@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workbench version="2.0">
+<workbenchAdvisor/>
+<window height="861" width="1176" x="160" y="17">
+<fastViewData fastViewLocation="1024"/>
+<perspectiveBar/>
+<coolbarLayout locked="0"/>
+<page focus="true" label="&lt;Unknown Label&gt; - Perspective">
+<editors>
+<editorArea activeWorkbook="DefaultEditorWorkbook">
+<info part="DefaultEditorWorkbook">
+<folder appearance="1" expanded="2">
+<presentation id="org.eclipse.ui.internal.presentations.r33.WorkbenchPresentationFactory_33"/>
+</folder>
+</info>
+</editorArea>
+</editors>
+<views>
+<view id="fable.framework.views.EdfView" partName="Edf View">
+<viewState/>
+</view>
+<view id="fable.framework.views.edf.SampleView:0" partName="Sample view">
+<viewState/>
+</view>
+<view id="fable.framework.views.PlotView" partName="Plot View">
+<viewState/>
+</view>
+<view id="fable.framework.views.edf.SampleView:2" partName="Sample view">
+<viewState/>
+</view>
+<view id="fable.framework.views.edf.SampleView" partName="Sample view">
+<viewState/>
+</view>
+<view id="fable.framework.views.EdfView:0" partName="Edf View">
+<viewState/>
+</view>
+<view id="fable.framework.views.edf.SampleView:1" partName="Sample view">
+<viewState/>
+</view>
+</views>
+<perspectives activePart="fable.framework.views.edf.SampleView:1" activePerspective="fable.framework.views.perspective">
+<perspective editorAreaTrimState="2" editorAreaVisible="0" fixed="1" version="0.016">
+<descriptor class="fable.framework.views.rcp.Perspective" id="fable.framework.views.perspective" label="Perspective"/>
+<alwaysOnActionSet id="org.eclipse.ui.actionSet.keyBindings"/>
+<alwaysOnActionSet id="org.eclipse.ui.WorkingSetActionSet"/>
+<alwaysOnActionSet id="org.eclipse.ui.actionSet.openFiles"/>
+<alwaysOnActionSet id="org.eclipse.update.ui.softwareUpdates"/>
+<view id="fable.framework.views.edf.SampleView"/>
+<view id="fable.framework.views.edf.SampleView:0"/>
+<view id="fable.framework.views.edf.SampleView:1"/>
+<view id="fable.framework.views.EdfView"/>
+<view id="fable.framework.views.EdfView:0"/>
+<view id="fable.framework.views.PlotView"/>
+<view id="fable.framework.views.edf.SampleView:2"/>
+<fastViewBars/>
+<viewLayoutRec closeable="false" id="fable.framework.views.EdfView"/>
+<viewLayoutRec closeable="false" id="fable.framework.views.PlotView" moveable="false"/>
+<viewLayoutRec closeable="false" id="fable.framework.views.edf.SampleView"/>
+<layout>
+<mainWindow>
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@9260ee">
+<folder activePageID="fable.framework.views.edf.SampleView:1" appearance="2" expanded="2">
+<page content="fable.framework.views.edf.SampleView" label="Sample view"/>
+<page content="fable.framework.views.edf.SampleView:0" label="Sample view"/>
+<page content="fable.framework.views.edf.SampleView:1" label="Sample view"/>
+<presentation id="org.eclipse.ui.internal.presentations.r33.WorkbenchPresentationFactory_33">
+<part id="0"/>
+<part id="1"/>
+<part id="2"/>
+</presentation>
+</folder>
+</info>
+<info folder="true" part="stickyFolderRight" ratio="0.7487047" ratioLeft="289" ratioRight="97" relationship="2" relative="org.eclipse.ui.internal.ViewStack@9260ee">
+<folder appearance="2" expanded="2">
+<page content="org.eclipse.help.ui.HelpView" label="LabelNotFound"/>
+<page content="org.eclipse.ui.internal.introview" label="LabelNotFound"/>
+<page content="org.eclipse.ui.cheatsheets.views.CheatSheetView" label="LabelNotFound"/>
+</folder>
+</info>
+<info part="org.eclipse.ui.editorss" ratio="0.8493724" ratioLeft="203" ratioRight="36" relationship="4" relative="org.eclipse.ui.internal.ViewStack@9260ee"/>
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@19d6af" ratio="0.46067417" ratioLeft="533" ratioRight="624" relationship="2" relative="org.eclipse.ui.internal.ViewStack@9260ee">
+<folder activePageID="fable.framework.views.EdfView:0" appearance="2" expanded="2">
+<page content="fable.framework.views.EdfView" label="Edf View"/>
+<page content="fable.framework.views.EdfView:0" label="Edf View"/>
+<presentation id="org.eclipse.ui.internal.presentations.r33.WorkbenchPresentationFactory_33">
+<part id="0"/>
+<part id="1"/>
+</presentation>
+</folder>
+</info>
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@5db5ae" ratio="0.49753696" ratioLeft="101" ratioRight="102" relationship="4" relative="org.eclipse.ui.internal.ViewStack@19d6af">
+<folder activePageID="fable.framework.views.edf.SampleView:2" appearance="2" expanded="2">
+<page content="fable.framework.views.PlotView" label="Plot View"/>
+<page content="fable.framework.views.edf.SampleView:2" label="Sample view"/>
+<presentation id="org.eclipse.ui.internal.presentations.r33.WorkbenchPresentationFactory_33">
+<part id="0"/>
+<part id="1"/>
+</presentation>
+</folder>
+</info>
+</mainWindow>
+</layout>
+</perspective>
+</perspectives>
+<workingSets/>
+<navigationHistory/>
+</page>
+<workbenchWindowAdvisor/>
+<actionBarAdvisor/>
+<trimLayout/>
+</window>
+<mruList/>
+</workbench>

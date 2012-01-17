@@ -1,0 +1,91 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<TITLE>ImageViewer - Getting started</TITLE>
+<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
+<META NAME="CREATED" CONTENT="20070822;22045596">
+<META NAME="CHANGEDBY" CONTENT="Andy Gotz">
+<META NAME="CHANGED" CONTENT="20080805;8232900">
+<STYLE TYPE="text/css">
+        <!--
+                P { text-align: justify }
+                H2 { margin-bottom: 0.26cm; color: #8b4513; text-align: left }
+                A:link { font-weight: bold }
+        -->
+        </STYLE>
+<link href="style.css" rel="stylesheet" type="text/css">
+</link>
+<link href="help.css" rel="stylesheet" type="text/css">
+</link>
+</HEAD>
+<BODY LANG="fr-FR" LINK="#8b4513" VLINK="#8b4513" DIR="LTR">
+<DIV ID="header" DIR="LTR"> Getting Started </DIV>
+<P>ImageViewer makes it easy to look at images and their metadata. This getting
+  started guide will explain how to quickly get a workbench which looks like
+  this :</P>
+<P ALIGN=LEFT><IMG SRC="gettingstarted.png" NAME="graphics1" ALIGN=BOTTOM BORDER=0></P>
+<H1>Installing</H1>
+<OL>
+  <LI>
+    <P ALIGN=LEFT>We assume that you have downloaded the latest version of ImageViewer
+      from the FABLE Sourceforge <A HREF="http://sourceforge.net/project/showfiles.php?group_id=82044">download
+      site</A> and unzipped it in a directory we will refer to as $IMAGEVIEWER_HOME
+      from now on.</P>
+  <LI>
+    <P ALIGN=LEFT>In the $IMAGEVIEWER_HOME directory you should find a script
+      for your platform to start ImageViewer :</P>
+</OL>
+<UL>
+  <LI>
+    <P ALIGN=LEFT>Windows – run_imageviewer.bat</P>
+  <LI>
+    <P ALIGN=LEFT>Linux – run_imageviewer.sh</P>
+  <LI>
+    <P ALIGN=LEFT>MacOSX – run_imageviewer.macosx</P>
+</UL>
+<OL START=3>
+  <P ALIGN=LEFT>The script should find where ImageViewer is installed on its
+    own. If not you must modify this script to make the IMAGEVIEWER_HOME variable
+    be correct i.e. point to the directory where you unzipped ImageViewer.</P>
+  <LI>
+    <P ALIGN=LEFT>You also need Java 1.6 or later installed on your system and
+      make sure it is in your PATH. You can download Java from <A HREF="http://www.java.com/en/download/index.jsp">here</A>.
+      You can test the version of Java you have by opening a shell or command
+      line window and typing java -version. You should see something like this
+      :<BR>
+      <BR>
+      <CODE>goetz@eclipse:~ $ java -version <BR>
+      java version &quot;1.6.0_11&quot; <BR>
+      Java(TM) 2 Runtime Environment, Standard Edition (build 1.6.0_11-b03) <BR>
+      Java HotSpot(TM) Client VM (build 11.0-b16, mixed mode, sharing)</CODE> </P>
+  <LI>
+    <P ALIGN=LEFT>You must also install Python 2.5 and make sure it is in your
+      path. You can test this by opening a console window or shell and typing
+      python. You should see something like this : <BR>
+      <BR>
+      <CODE>goetz@eclipse:~ $ python <BR>
+      Python 2.5.1 (r251:54863, May 2 2007, 16:56:35) <BR>
+      [GCC 4.1.2 (Ubuntu 4.1.2-0ubuntu4)] on linux2 <BR>
+      Type &quot;help&quot;,
+      &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more
+      information. <BR>
+      &gt;&gt;&gt; </CODE> </P>
+</OL>
+<P ALIGN=LEFT>Start ImageViewer by clicking on the batch file or running the
+  shell script. You should see the standard ImageViewer startup splash screen
+  and then the ImageViewer workbench window :</P>
+<P ALIGN=LEFT><IMG SRC="imageviewer.png" NAME="graphics3" ALIGN=BOTTOM BORDER=0></P>
+<P ALIGN=LEFT>Now open the standard test images which are delivered with ImageViewer
+  by clicking on File -&gt; Open Directory and browse to :</P>
+<P ALIGN=LEFT>$IMAGEVIEWER_HOME/plugins/fable.test.data_1.0.0/data/images</P>
+<P ALIGN=LEFT>You should see the same screen as the one displayed at the beginning
+  of this Getting Started. To get the colour lookup display go to the LUT combo
+  box (2<SUP>nd</SUP> from left on the top of the image) and select colour.</P>
+<P ALIGN=LEFT>If you have all the prerequisites installed everything should just
+  work as described here, and you should see the top image. For more help see
+  the next section on the User Interface.</P>
+<P ALIGN=LEFT>If however you could not read the image or had another problem
+  refer to the <A HREF="troubleshooting.html">Troubleshooting</A> section.</P>
+</BODY>
+</HTML>

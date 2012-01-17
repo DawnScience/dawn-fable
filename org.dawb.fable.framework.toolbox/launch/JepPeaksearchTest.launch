@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.junit.launchconfig">
+<stringAttribute key="bad_container_name" value="/fable.framework.toolbox/launc"/>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/org.dawb.fable.framework.toolbox"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="4"/>
+</listAttribute>
+<booleanAttribute key="org.eclipse.debug.core.appendEnvironmentVariables" value="true"/>
+<mapAttribute key="org.eclipse.debug.core.environmentVariables">
+<mapEntry key="LD_PRELOAD" value="/usr/lib/libpython2.5.so.1.0"/>
+</mapAttribute>
+<stringAttribute key="org.eclipse.jdt.junit.CONTAINER" value=""/>
+<booleanAttribute key="org.eclipse.jdt.junit.KEEPRUNNING_ATTR" value="true"/>
+<stringAttribute key="org.eclipse.jdt.junit.TESTNAME" value=""/>
+<stringAttribute key="org.eclipse.jdt.junit.TEST_KIND" value="org.eclipse.jdt.junit.loader.junit4"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="fable.framework.jep.test.JepPeaksearchTest"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="org.dawb.fable.framework.toolbox"/>
+<stringAttribute key="org.eclipse.jdt.launching.WORKING_DIRECTORY" value="C:\Documents and Settings\suchet.ESRF\workspace\fable.test.data\data\images"/>
+</launchConfiguration>

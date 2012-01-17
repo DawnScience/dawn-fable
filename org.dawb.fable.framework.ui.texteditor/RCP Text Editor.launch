@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.pde.ui.RuntimeWorkbench">
+<booleanAttribute key="askclear" value="true"/>
+<booleanAttribute key="automaticAdd" value="true"/>
+<booleanAttribute key="automaticValidate" value="false"/>
+<stringAttribute key="bootstrap" value=""/>
+<stringAttribute key="checked" value="[NONE]"/>
+<booleanAttribute key="clearConfig" value="false"/>
+<booleanAttribute key="clearws" value="false"/>
+<booleanAttribute key="clearwslog" value="false"/>
+<stringAttribute key="configLocation" value="${workspace_loc}/.metadata/.plugins/org.eclipse.pde.core/RCP Text Editor"/>
+<booleanAttribute key="default" value="false"/>
+<booleanAttribute key="includeOptional" value="true"/>
+<stringAttribute key="location" value="${system_property:user.home}/runtime-RCPTextEditor"/>
+<booleanAttribute key="org.eclipse.debug.core.appendEnvironmentVariables" value="true"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-clean -consolelog"/>
+<stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.pde.ui.workbenchClasspathProvider"/>
+<stringAttribute key="pde.version" value="3.3"/>
+<stringAttribute key="product" value="fable.framework.ini.product"/>
+<stringAttribute key="selected_target_plugins" value="org.eclipse.core.jobs@default:default,org.eclipse.text@default:default,org.eclipse.ui@default:default,org.eclipse.help@default:default,org.eclipse.ui.workbench.texteditor@default:default,org.eclipse.core.runtime.compatibility.registry@default:false,org.eclipse.core.runtime@default:true,org.eclipse.core.expressions@default:default,org.eclipse.jface.databinding@default:default,org.eclipse.osgi.services@default:default,org.eclipse.swt@default:default,org.eclipse.core.commands@default:default,org.eclipse.equinox.common@2:true,org.eclipse.jface@default:default,org.eclipse.osgi@-1:true,org.eclipse.core.runtime.compatibility.auth@default:default,org.eclipse.core.databinding@default:default,org.eclipse.jface.text@default:default,javax.servlet@default:default,org.eclipse.core.contenttype@default:default,com.ibm.icu@default:default,org.eclipse.equinox.registry@default:default,org.eclipse.equinox.app@default:default,org.eclipse.equinox.preferences@default:default,org.eclipse.ui.workbench@default:default"/>
+<stringAttribute key="selected_workspace_plugins" value="org.lwjgl.opengl@default:default,org.dawb.hdf5@default:default,com.isencia.passerelle.engine@default:default,org.dawb.test@default:default,org.dawb.fable.python@default:default,org.dawb.workbench.jmx@default:default,org.dawb.edna.schema@default:default,uk.ac.diamond.CBFlib@default:default,org.dawb.common.python@default:default,uk.ac.gda.nexus@default:default,org.dawb.jep@default:default,org.dawb.workbench.examples@default:default,org.dawb.jmol@default:default,org.dawb.fable.framework.toolbox@default:default,org.jyrcp.base@default:default,org.dawb.fable.imageviewer.test@default:default,com.isencia.passerelle.actor@default:default,uk.ac.diamond.scisoft.analysis@default:default,org.dawb.fable.framework.navigator@default:default,org.dawb.fable.imageviewer@default:default,org.dawb.pydev.extensions@default:default,org.dawb.workbench.ui@default:default,org.dawb.stac.video@default:default,org.dawb.fable.framework.ui.texteditor@default:default,org.dawb.tango.extensions@default:default,org.dawb.fable.extensions@default:default,uk.ac.diamond.sda.polling@default:default,uk.ac.gda.common.rcp@default:default,org.dawb.passerelle.actors.test@default:default,org.dawb.workbench.actions@default:default,org.dawb.passerelle.actors@default:default,org.dawb.common.ui@default:default,org.dawb.common.util@default:default,org.dawb.hdf5.editor@default:default,com.isencia.passerelle.workbench.model@default:default,uk.ac.diamond.scisoft.analysis.rcp@default:default,com.isencia.passerelle.workbench.model.editor.ui@default:default,uk.ac.gda.libs@default:default,com.isencia.passerelle.commons@default:default,org.dawb.workbench.application@default:default,uk.ac.diamond.scisoft.python@default:default,org.dawb.gda.extensions@default:default,com.isencia.passerelle.workbench.model.ui@default:default,uk.ac.gda.common@default:default,org.dawb.fable.framework.ui@default:default,org.dawb.passerelle.common@default:default,org.dawb.jlchart@default:default,com.isencia.passerelle.workbench.util@default:default,com.isencia.passerelle.ume@default:default,com.isencia.passerelle.workbench@default:default"/>
+<booleanAttribute key="show_selected_only" value="false"/>
+<booleanAttribute key="tracing" value="false"/>
+<booleanAttribute key="useCustomFeatures" value="false"/>
+<booleanAttribute key="useDefaultConfig" value="true"/>
+<booleanAttribute key="useDefaultConfigArea" value="true"/>
+<booleanAttribute key="useProduct" value="true"/>
+<booleanAttribute key="usefeatures" value="false"/>
+</launchConfiguration>

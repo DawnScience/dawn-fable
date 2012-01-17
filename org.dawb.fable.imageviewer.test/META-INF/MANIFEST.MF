@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Imageviewer Tests
+Bundle-SymbolicName: org.dawb.fable.imageviewer.test;singleton:=true
+Bundle-Version: 0.8.2.qualifier
+Bundle-Vendor: esrf.eu
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: org.junit4,
+ org.eclipse.ui;bundle-version="3.6.1",
+ org.eclipse.core.runtime;bundle-version="3.6.0",
+ org.dawb.fable.imageviewer
+Import-Package: fable.imageviewer.internal,
+ fable.imageviewer.views,
+ org.dawb.common.util.test
+Export-Package: fable.imageviewer.tests.gui
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

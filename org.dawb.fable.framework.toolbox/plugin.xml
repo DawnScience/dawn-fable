@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.ui.resourcePerspective">
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            category="org.dawb.workbench.application.data.analysis"
+            class="fable.framework.views.MemoryUsageView"
+            icon="images/jmeth_obj.gif"
+            id="fable.framework.views.memoryusageview"
+            name="Memory Usage"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="fable.framework.toolboxpreferences.PreferencesInitializer">
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="fable.framework.toolbox.tools"
+            class="fable.framework.toolboxpreferences.LoggerPreferencesPage"
+            id="fable.framework.toolbox.logger"
+            name="Logger">
+      </page>
+      <page
+            category="fable.framework.toolbox.tools"
+            class="fable.framework.toolboxpreferences.MemoryUsagePreferencesPage"
+            id="fable.framework.toolbox.memoryusage"
+            name="Memory Usage">
+      </page>
+      <page
+            category="org.edna.workbench.preferences.root"
+            class="fable.framework.toolboxpreferences.ToolsPreferencePage"
+            id="fable.framework.toolbox.tools"
+            name="Tools">
+      </page>
+      <page
+            category="fable.framework.toolbox.tools"
+            class="fable.framework.toolboxpreferences.ImagePrintPreferencesPage"
+            id="fable.framework.toolbox.imageprint"
+            name="Image Printing">
+      </page>
+   </extension>
+ 
+</plugin>

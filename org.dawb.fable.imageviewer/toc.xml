@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.toc"?>
+
+<toc label="ImageViewer">
+	<topic label="Introduction"  href="html/introduction.html"/> 
+	<topic label="Getting Started"  href="html/gettingstarted.html"/> 
+	<topic label="User Interface" href="html/imageviewer.html"/> 
+	<topic label="Image Formats"  href="html/imageformats.html"/> 
+</toc>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<plugin>
+
+   <extension
+         id="application"
+         point="org.eclipse.core.runtime.applications">
+      <application>
+         <run
+               class="fable.framework.navigator.Application">
+         </run>
+      </application>
+   </extension>
+   <!--
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            allowMultiple="false"
+            class="fable.framework.navigator.views.SampleNavigatorView"
+            icon="images/sample.gif"
+            id="fable.framework.navigator.views.SampleNavigatorViewid"
+            name="Image Navigator">
+      </view>
+   </extension>
+   -->
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="org.edna.workbench.preferences.root"
+            class="fable.framework.navigator.preferences.SampleNavigatorPreferences"
+            id="fable.framework.navigator.sampleNavigatorPreferences"
+            name="Fabio Files">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="fable.framework.navigator.preferences.SampleNavigatorPreferencesInitializer">
+      </initializer>
+   </extension>
+
+</plugin>

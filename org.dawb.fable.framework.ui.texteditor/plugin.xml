@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin
+   id="org.dawb.fable.framework.ui.texteditor"
+   name="%pluginName"
+   version="1.0.0.qualifier"
+   provider-name="%providerName">
+
+   <runtime>
+      <library name=".">
+         <export
+               name="*">
+         </export>
+      </library>
+      <library name="src/org/eclipse/ui/examples/rcp/texteditor/editors/xml/">
+         <export
+               name="*">
+         </export>
+      </library>
+   </runtime>
+
+   <requires>
+      <import plugin="org.eclipse.ui" version="3.1.0" match="greaterOrEqual"/>
+      <import plugin="org.eclipse.core.runtime"/>
+      <import plugin="org.eclipse.jface.text"/>
+      <import plugin="org.eclipse.ui.workbench.texteditor"/>
+   </requires>
+   
+   <extension
+         id="product"
+         point="org.eclipse.core.runtime.products">
+      <product
+            description="An RCP text editor"
+            name="RCP Text Editor"
+            application="org.eclipse.ui.examples.rcp.texteditor.application">
+         <property
+               name="appName"
+               value="RCP Text Editor"/>
+         <property
+               name="windowImages"
+               value="icons/text.gif"/>
+         <property
+               name="aboutText"
+               value="An RCP text editor based on the optional text infrastructure."/>
+         <property
+               name="aboutImage"
+               value="icons/eclipse_lg.gif"/>
+      </product>
+   </extension>
+
+   <extension
+         id="application"
+         name="RCP Text Editor Example Application"
+         point="org.eclipse.core.runtime.applications">
+      <application>
+         <run class="org.eclipse.ui.examples.rcp.texteditor.TextEditorApplication"/>
+      </application>
+   </extension>
+   
+   <extension
+         id="perspective"
+         name="RCP Text Editor Example Perspective"
+         point="org.eclipse.ui.perspectives">
+      <perspective
+            icon="icons/perspective.gif"
+            class="org.eclipse.ui.examples.rcp.texteditor.TextEditorPerspective"
+            fixed="true"
+            name="%perspectiveName"
+            id="org.eclipse.ui.examples.rcp.texteditor.TextEditorPerspective"/>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            id="org.eclipse.ui.examples.rcp.texteditor.editors.xml.XMLEditor"
+            icon="icons/text.gif"
+            name="Sample XML Editor"
+            class="org.eclipse.ui.examples.rcp.texteditor.editors.xml.XMLEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            extensions="xml,html"/>
+      <editor
+            id="org.eclipse.ui.examples.rcp.texteditor.editors.SimpleEditor"
+            icon="icons/text.gif"
+            name="Sample Editor"
+            class="org.eclipse.ui.examples.rcp.texteditor.editors.SimpleEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            default="true"/>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            categoryId="org.eclipse.ui.category.file"
+            description="Open a file"
+            id="org.eclipse.ui.examples.rcp.texteditor.commands.OpenFile"
+            name="Open"/>
+   </extension>
+   
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.eclipse.ui.examples.rcp.texteditor.commands.OpenFile"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+O"/>
+   </extension>
+   
+   <!-- must come after the command definition above -->
+   <extension
+         point="org.eclipse.ui.elementFactories">
+      <factory
+            class="org.eclipse.ui.examples.rcp.texteditor.editors.PathEditorInputFactory"
+            id="org.eclipse.ui.part.PathEditorInputFactory">
+      </factory>
+   </extension>
+   
+</plugin>

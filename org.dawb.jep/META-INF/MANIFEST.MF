@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Jep
+Bundle-SymbolicName: org.dawb.jep
+Bundle-Version: 1.0.0.qualifier
+Bundle-NativeCode: 
+ lib/win32-x86/jep.dll; osname=Win32; processor=x86,
+ lib/win32-x86_64/jep.dll; osname=Win32; processor=x86-64,
+ lib/macosx/libjep.dylib; osname=macosx; osname=Mac OS X;  osname=MacOS; processor=x86,
+ lib/macosx/libjep.dylib; osname=macosx; osname=Mac OS X;  osname=MacOS; processor=x86_64,
+ lib/linux-x86/libjep.so; osname=Linux; processor=x86,
+ lib/linux-x86_64/libjep.so; osname=linux; processor=amd64,
+ *
+Bundle-ClassPath: jep.jar
+Bundle-Vendor: Jepp.sourceforge
+Export-Package: jep,
+ jep.python
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
