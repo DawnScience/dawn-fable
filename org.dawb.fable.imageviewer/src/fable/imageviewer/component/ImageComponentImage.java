@@ -199,6 +199,9 @@ public class ImageComponentImage implements IImagesVarKeys {
 	private ReliefView zoomReliefView;
 	private RockingCurveView zoomRockingCurveView;
 	private Boolean legendDraw = false;
+	private Canvas canvasLegend;
+	private GC legendCanvasGC;
+
 
 	/**
 	 * Constructor.
@@ -231,6 +234,11 @@ public class ImageComponentImage implements IImagesVarKeys {
 		GridData gridData = new GridData(GridData.FILL, GridData.FILL, true,
 				true);
 		imageCanvas.setLayoutData(gridData);
+		canvasLegend = controls.getCanvaslegend();
+		canvasLegend.setBackground(display.getSystemColor(SWT.COLOR_DARK_GRAY));
+		//
+		legendCanvasGC = new GC(canvasLegend);
+		//
 		imageCanvasGC = new GC(imageCanvas);
 		Rectangle bounds = imageCanvas.getBounds();
 		canvasWidth = bounds.width;
@@ -1551,20 +1559,30 @@ public class ImageComponentImage implements IImagesVarKeys {
 	 */
 	private void drawLegend(float min, float max) {
 		if (imageCanvasGC == null || legend == null) return;
+		if (imageCanvasGC == null || legend == null) return;
 		Rectangle bounds = imageCanvas.getBounds();
 		// draw the legend offset 10% of the width and height of the legend area to leave some space
 		// between the legend and the image
 //		int legend_width = (int)((float)bounds.width*.905f);
 		int legend_width = bounds.width-43;
-		int legend_height = 1;
+		int legend_height = 1;		
 		imageCanvasGC.drawImage(legend, legend_width, legend_height);
+		legendCanvasGC.drawImage(legend, 0, 0);		
 		Font font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
 		imageCanvasGC.setFont(font);
+		legendCanvasGC.setFont(font);
 		imageCanvasGC.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
+		legendCanvasGC.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
 		imageCanvasGC.drawText(Integer.toString((int)max), legend_width, legend_height);
+		legendCanvasGC.drawText(Integer.toString((int)max), legend_width, legend_height);
 		imageCanvasGC.drawText(Integer.toString((int)min), legend_width, bounds.height-legend_height-20);
 		font.dispose();
 	}
+	
+	
+	
+	
+	
 	/**
 	 * Creates a drop target on the imageCanvas. TextTransfers and FileTransfers
 	 * are allowed. Only the first fileName in an array is used.

@@ -27,6 +27,8 @@ import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -126,6 +128,12 @@ public class ImageComponentUI implements IImagesVarKeys {
 	
 	private boolean off = false;
 	private Composite titleComponent;
+	private Composite legendComposite;
+	private Canvas canvaslegend;
+
+	//public GC legendCanvasGC=new GC(legendComposite);
+	public static  GC legendCanvasGC;
+	
 
 	/**
 	 * Creates all the controls.
@@ -185,10 +193,39 @@ public class ImageComponentUI implements IImagesVarKeys {
 		createImageControlSwitches(iv.getActionBars());
 		createImageControlMenus(iv.getActionBars());
        
+		/*composite principal*/
+		GridLayout grid3Cols = new GridLayout();
+		grid3Cols.numColumns = 2;
+		Composite legendImageComposite = new Composite(parent, SWT.NULL);
+		legendImageComposite.setLayout(grid3Cols);
+		legendImageComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.FILL_VERTICAL));
+		GridUtils.removeMargins(legendImageComposite);
+
+		
+		GridLayout grid4Cols = new GridLayout();
+		legendComposite = new Composite(legendImageComposite, SWT.NULL);
+		legendComposite.setLayout(grid4Cols);
+		legendComposite.setLayoutData(new GridData(GridData.FILL_VERTICAL));
+		GridUtils.removeMargins(legendComposite);
+
+		GridUtils.setVisible(legendComposite, false);
+		
+		canvaslegend=new Canvas(legendComposite,SWT.NONE);
+		canvaslegend.setBackground(display.getSystemColor(SWT.COLOR_RED));
+		canvaslegend.setLayoutData(new GridData(GridData.FILL_BOTH));
+	
+		
+//		legendCanvasGC =new GC(canvaslegend);	
+//		legendCanvasGC.drawText("test", 0, 0, false);
+//		Button testButton = new Button(legendComposite, SWT.NONE);
+//		testButton.setText("Hello world!");
+//		bouton = new Button(legendComposite, SWT.NONE);
+//		bouton.setText("fonctionnement KO");
+
 		GridLayout grid2Cols = new GridLayout();
 		// KE: Why 2 cols ?
 		// grid2Cols.numColumns = 2;
-		Composite canvasComposite = new Composite(parent, SWT.NULL);
+		Composite canvasComposite = new Composite(legendImageComposite, SWT.NULL);
 		canvasComposite.setLayout(grid2Cols);
 		canvasComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.FILL_VERTICAL));
 		GridUtils.removeMargins(canvasComposite);
@@ -198,7 +235,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 		imageCanvas = new Canvas(canvasComposite, SWT.NONE);
 		// Initialize the ImageViewImage here
 		image.initializeCanvas();
-
+		
 		/* bottom line containing status and load image controls */
 		createImageControlUI(parent);
 
@@ -210,6 +247,11 @@ public class ImageComponentUI implements IImagesVarKeys {
 		
 	}
 	
+	
+	public Canvas getCanvaslegend() {
+		return canvaslegend;
+	}
+
 	public void setTitle(final String title) {
 		if (titleLabel.isDisposed()) return;
 		if (title==null) {
@@ -874,6 +916,8 @@ public class ImageComponentUI implements IImagesVarKeys {
 	public void setLegendShowing(boolean legendShowing) {
 		this.legendShowing = legendShowing;
 		this.image.setLegendOn(legendShowing);
+		GridUtils.setVisible(legendComposite, legendShowing);
+		legendComposite.getParent().layout(new Control[]{legendComposite});
 	}
 	public void setFocus() {
 		// TODO Auto-generated method stub
