@@ -28,7 +28,9 @@ import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -88,7 +90,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 	/**
 	 * Indicates when the legend is visible.
 	 */
-	private boolean legendShowing = false;
+	private boolean legendShowing=true;
 	/**
 	 * The Display for this view.
 	 */
@@ -119,7 +121,8 @@ public class ImageComponentUI implements IImagesVarKeys {
 	 * @param imageView
 	 */
 	public ImageComponentUI(ImageComponent imageView) {
-		this.iv = imageView;
+		this.iv = imageView;		
+		
 	}
 	
 	public String toString() {
@@ -130,8 +133,9 @@ public class ImageComponentUI implements IImagesVarKeys {
 	private Composite titleComponent;
 	private Composite legendComposite;
 	private Canvas canvaslegend;
+	private static int canvaslegendsize;
 
-	//public GC legendCanvasGC=new GC(legendComposite);
+
 	public static  GC legendCanvasGC;
 	
 
@@ -141,6 +145,8 @@ public class ImageComponentUI implements IImagesVarKeys {
 	 * @param parent
 	 */
 	public void createControls(Composite parent) {
+		
+		
 		
 		if (iv == null) return;
 		
@@ -196,6 +202,9 @@ public class ImageComponentUI implements IImagesVarKeys {
 		/*composite principal*/
 		GridLayout grid3Cols = new GridLayout();
 		grid3Cols.numColumns = 2;
+		grid3Cols.horizontalSpacing=200;
+		grid3Cols.marginWidth=200;
+		grid3Cols.verticalSpacing=200;
 		Composite legendImageComposite = new Composite(parent, SWT.NULL);
 		legendImageComposite.setLayout(grid3Cols);
 		legendImageComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.FILL_VERTICAL));
@@ -203,24 +212,24 @@ public class ImageComponentUI implements IImagesVarKeys {
 
 		
 		GridLayout grid4Cols = new GridLayout();
+
+		
 		legendComposite = new Composite(legendImageComposite, SWT.NULL);
 		legendComposite.setLayout(grid4Cols);
-		legendComposite.setLayoutData(new GridData(GridData.FILL_VERTICAL));
-		GridUtils.removeMargins(legendComposite);
-
-		GridUtils.setVisible(legendComposite, false);
+		legendComposite.setLayoutData(new GridData(SWT.NONE, SWT.FILL, false, true, 1, 1));
 		
+		
+		GridUtils.removeMargins(legendComposite);
+		GridUtils.setVisible(legendComposite, true);
+		this.image.setLegendOn(true);
+			
 		canvaslegend=new Canvas(legendComposite,SWT.NONE);
 		canvaslegend.setBackground(display.getSystemColor(SWT.COLOR_RED));
-		canvaslegend.setLayoutData(new GridData(GridData.FILL_BOTH));
-	
-		
-//		legendCanvasGC =new GC(canvaslegend);	
-//		legendCanvasGC.drawText("test", 0, 0, false);
-//		Button testButton = new Button(legendComposite, SWT.NONE);
-//		testButton.setText("Hello world!");
-//		bouton = new Button(legendComposite, SWT.NONE);
-//		bouton.setText("fonctionnement KO");
+		GridData gridDataLegend = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		canvaslegendsize=55;
+		gridDataLegend.widthHint = canvaslegendsize;	
+		canvaslegend.setLayoutData(gridDataLegend);
+		canvaslegend.layout();
 
 		GridLayout grid2Cols = new GridLayout();
 		// KE: Why 2 cols ?
@@ -260,6 +269,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 			titleLabel.setText(title);
 			GridUtils.setVisible(titleComponent, true);
 		}
+
 		titleComponent.getParent().layout(new Control[]{titleComponent});
 	}
 	
@@ -914,6 +924,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 	 *            the legendShowing to set
 	 */
 	public void setLegendShowing(boolean legendShowing) {
+		
 		this.legendShowing = legendShowing;
 		this.image.setLegendOn(legendShowing);
 		GridUtils.setVisible(legendComposite, legendShowing);
@@ -977,4 +988,16 @@ public class ImageComponentUI implements IImagesVarKeys {
 		this.statusLabel = statusLabel;
 	}
 
+	public static int getCanvaslegendsize() {
+		return canvaslegendsize;
+	}
+
+	public static void setCanvaslegendsize(int canvaslegendsize) {
+		ImageComponentUI.canvaslegendsize = canvaslegendsize;
+	}
+
+	
+	
+		
+	
 }
