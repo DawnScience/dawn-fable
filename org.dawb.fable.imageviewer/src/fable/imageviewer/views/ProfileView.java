@@ -141,6 +141,7 @@ public class ProfileView extends ViewPart {
 		x_yData.setName("Intensity");
 		final List<AbstractDataset> x_yDataSets = new ArrayList<AbstractDataset>(1);
 		x_yDataSets.add(x_yData);
+		plottingSystem_x.clear();
 		plottingSystem_x.createPlot1D(x_xAxis, x_yDataSets, null);
 		double[] y_x = new double[pixel_y.length];
 		double[] y_y = new double[pixel_y.length];
