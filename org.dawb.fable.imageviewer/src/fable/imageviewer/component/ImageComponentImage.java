@@ -1419,12 +1419,13 @@ public class ImageComponentImage implements IImagesVarKeys {
 		}
 		// clearCanvas();
 		Rectangle bounds = imageCanvas.getBounds();
-		//if (legendDraw)
+	//	if (legendDraw)
 			// use only 90% of width to leave space for plot of scale
-			//bounds.width = (int)(bounds.width-45); 
+		//	bounds.width = (int)(bounds.width-45); 
 		
 		// determine how much each dimension needs to be scaled by
-		xScale = (double) orientedRect.width / (double) bounds.width;
+		xScale = (double) orientedRect.width / (double) bounds.width; //problem
+		
 		yScale = (double) orientedRect.height / (double) bounds.height;
 		// choose the largest to scale both dimensions by if preserve the image
 		// aspect ratio is selected
@@ -1545,11 +1546,15 @@ public class ImageComponentImage implements IImagesVarKeys {
 //		bounds.height = (int)(bounds.height*.99); 
 		bounds.width = ImageComponentUI.getCanvaslegendsize(); 
 		bounds.height = bounds.height-2; 
+
 		// determine how much each dimension needs to be scaled by
-		xScale = (double) 1 / (double) bounds.width;
+	/*	xScale = (double) 1 / (double) bounds.width;
 		yScale = (double) 100 / (double) bounds.height;
 		int xscaledTo = (int) ((double) 1 / xScale);
-		int yscaledTo = (int) ((double) 100 / yScale);
+		int yscaledTo = (int) ((double) 100 / yScale);*/
+		int xscaledTo=bounds.width;
+		int yscaledTo=bounds.height;
+
 		if (data == null) {
 			logger.debug("data is null !");
 			legend = null;
