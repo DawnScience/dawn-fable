@@ -141,7 +141,7 @@ public class ProfileView extends ViewPart {
 		x_yData.setName("Intensity");
 		final List<AbstractDataset> x_yDataSets = new ArrayList<AbstractDataset>(1);
 		x_yDataSets.add(x_yData);
-		plottingSystem_x.createPlot(x_xAxis, x_yDataSets, PlotType.PT1D, null);
+		plottingSystem_x.createPlot1D(x_xAxis, x_yDataSets, null);
 		double[] y_x = new double[pixel_y.length];
 		double[] y_y = new double[pixel_y.length];
 		for (int i = 0; i < pixel_y.length; i++) {
@@ -160,6 +160,6 @@ public class ProfileView extends ViewPart {
 		y_yData.setName("Intensity");
 		final List<AbstractDataset> y_yDataSets = new ArrayList<AbstractDataset>(1);
 		y_yDataSets.add(y_yData);
-		plottingSystem_y.createPlot(y_xAxis, y_yDataSets, PlotType.PT1D, null);
+		plottingSystem_y.createPlot1D(y_xAxis, y_yDataSets, null);
 	}
 }
