@@ -226,7 +226,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 		canvaslegend=new Canvas(legendComposite,SWT.NONE);
 		canvaslegend.setBackground(display.getSystemColor(SWT.COLOR_RED));
 		GridData gridDataLegend = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
-		canvaslegendsize=55;
+		canvaslegendsize=58;
 		gridDataLegend.widthHint = canvaslegendsize;	
 		canvaslegend.setLayoutData(gridDataLegend);
 		canvaslegend.layout();

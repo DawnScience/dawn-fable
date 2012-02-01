@@ -1583,36 +1583,54 @@ public class ImageComponentImage implements IImagesVarKeys {
 		legendCanvasGC.setFont(font);
 		legendCanvasGC.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
 		//legendCanvasGC.drawText(Integer.toString((int)max), 0, 0);
-		legendCanvasGC.drawText(Integer.toString((int)min), 0, bounds.height-legend_height-20);
+		//legendCanvasGC.drawText(Integer.toString((int)min), 0, bounds.height-legend_height-20);
 
 	
-		String number ;
-		number=Integer.toString((int)max);
-		String e = null;
+		String maxConvertInt ;
+		maxConvertInt=Integer.toString((int)max);
+		String maxformated = null;
 		NumberFormat formatter = new DecimalFormat();		
 		formatter=new DecimalFormat("0.##E0");
-		int longueur = number.length();
-		int lengthmax;
-		lengthmax=Float.toString((float)max).length();
+		int maxLenghInt = maxConvertInt.length();
+		int maxLenghString;
+		maxLenghString=Float.toString((float)max).length();
 		
-		if (longueur<6){
+		
+		if (maxLenghInt<6){
 			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
 			legendCanvasGC.setFont(font);
 			legendCanvasGC.drawText(Integer.toString((int)max), 0, 0);			
 		}
-		else if ((6<=longueur) && (lengthmax <13)){		
-			e=formatter.format(max);
-			font = new Font(display,"Arial",12,SWT.BOLD | SWT.ITALIC); 
+		else if (6<=maxLenghString){		
+			maxformated=formatter.format(max);
+			font = new Font(display,"Arial",11,SWT.BOLD | SWT.ITALIC); 
 			legendCanvasGC.setFont(font);
-			legendCanvasGC.drawText(e, 0, 0);
+			legendCanvasGC.drawText(maxformated, 0, 0);
 		}	
-		else {
-			 font = new Font(display,"Arial",11,SWT.BOLD | SWT.ITALIC); 
-			 legendCanvasGC.setFont(font);
-			 e=formatter.format(max);
-			 legendCanvasGC.drawText(e, 0, 0);	
-			}
-	
+		
+		String minConvertInt ;
+		minConvertInt=Integer.toString((int)min);
+		String minformated = null;
+		int minLenghInt = minConvertInt.length();
+		minformated=formatter.format(min);
+
+		
+		
+		
+		if (minLenghInt<6){
+			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
+			legendCanvasGC.setFont(font);
+			legendCanvasGC.drawText(Integer.toString((int)min), 0, bounds.height-legend_height-20);	
+			
+		}
+		else if (6<=minLenghInt){		
+		
+			font = new Font(display,"Arial",11,SWT.BOLD | SWT.ITALIC); 
+			legendCanvasGC.setFont(font);
+			legendCanvasGC.drawText(minformated, 0, bounds.height-legend_height-20);
+		
+		}
+		
 		font.dispose();
 	}
 	

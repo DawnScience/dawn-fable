@@ -101,9 +101,10 @@ public class ImageViewActions implements IImagesVarKeys {
 		// Legend on/off
 		drawLegendAction = new Action("Show legend",
 				IAction.AS_RADIO_BUTTON) {
+
 			@Override
 			public void run() {
-				controls.setLegendShowing(!controls.getLegendShowing());
+				controls.setLegendShowing(!controls.getLegendShowing());				
 				setChecked(controls.getLegendShowing());
 				
 			}
