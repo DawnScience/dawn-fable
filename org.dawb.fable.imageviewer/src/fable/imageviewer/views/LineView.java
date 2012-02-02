@@ -146,7 +146,8 @@ public class LineView extends ViewPart {
 		yData.setName("Intensity");
 		final List<AbstractDataset> yDataSets = new ArrayList<AbstractDataset>(1);
 		yDataSets.add(yData);
-		plottingSystem.createPlot(xAxis, yDataSets, PlotType.PT1D, null);
+		plottingSystem.clear();
+		plottingSystem.createPlot1D(xAxis, yDataSets, null);
 		plottingSystem.setTitle(title);
 	}
 
