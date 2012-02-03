@@ -1501,48 +1501,26 @@ public class ImageComponentImage implements IImagesVarKeys {
 			                         final float _maximum,
 			                         final PaletteData palette) {
 
-		/*
-		// Check for zero length
-		float[] screenLegendData = new float[100];
-		float _scale = (_maximum-_minimum)/100.f;
-		
-		//sample between max and min
-		for (int i=0; i<100; i++) {
-			screenLegendData[i] = _maximum-_scale*(float)i;
-
-		}
-
-		// Loop over pixels
-		float scale_8bit;
-		if (_maximum > _minimum) {
-			scale_8bit = 255f / (_maximum - _minimum);
-			
-			
-		} else {
-			scale_8bit = 1f;
-		}
-		*/
+	
 		byte[] legendAsByte = new byte[100];
 		float scaled_pixel;
 		byte pixel;
 		float scaled=0;
 		for (int i = 0; i < 100; i++) {
-			//scaled_pixel = screenLegendData[i] * scale_8bit;
 			
 			scaled_pixel=scaled;
 			scaled=scaled+2.56f;
-			System.out.println(scaled);
-		
+				
 			// Keep it in bounds
 			pixel = (byte) (0x000000FF & ((int) scaled_pixel));
-			System.out.print("i:"+i+": pixel="+pixel+" :scaledpixel="+scaled_pixel );
-			System.out.println(pixel);
+			
+			
 			legendAsByte[i] = pixel;
 		}
 
 		
 		
-		System.out.println("******+******");
+
 		ImageData imageData = new ImageData(1, 100, 8, palette, 1, legendAsByte);
 		return imageData;
 	}	
