@@ -9,6 +9,8 @@
  */ 
 package fable.imageviewer.component;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Vector;
 
 import org.eclipse.swt.SWT;
@@ -199,6 +201,10 @@ public class ImageComponentImage implements IImagesVarKeys {
 	private ReliefView zoomReliefView;
 	private RockingCurveView zoomRockingCurveView;
 	private Boolean legendDraw = false;
+	private Canvas canvasLegend;
+	private GC legendCanvasGC;
+
+
 
 	/**
 	 * Constructor.
@@ -231,6 +237,13 @@ public class ImageComponentImage implements IImagesVarKeys {
 		GridData gridData = new GridData(GridData.FILL, GridData.FILL, true,
 				true);
 		imageCanvas.setLayoutData(gridData);
+		
+		canvasLegend = controls.getCanvaslegend();
+		canvasLegend.setBackground(display.getSystemColor(SWT.COLOR_DARK_GRAY));
+		//
+		legendCanvasGC = new GC(canvasLegend);
+
+		//
 		imageCanvasGC = new GC(imageCanvas);
 		Rectangle bounds = imageCanvas.getBounds();
 		canvasWidth = bounds.width;
@@ -1406,11 +1419,13 @@ public class ImageComponentImage implements IImagesVarKeys {
 		}
 		// clearCanvas();
 		Rectangle bounds = imageCanvas.getBounds();
-		if (legendDraw)
+	//	if (legendDraw)
 			// use only 90% of width to leave space for plot of scale
-			bounds.width = (int)(bounds.width-45); 
+		//	bounds.width = (int)(bounds.width-45); 
+		
 		// determine how much each dimension needs to be scaled by
-		xScale = (double) orientedRect.width / (double) bounds.width;
+		xScale = (double) orientedRect.width / (double) bounds.width; //problem
+		
 		yScale = (double) orientedRect.height / (double) bounds.height;
 		// choose the largest to scale both dimensions by if preserve the image
 		// aspect ratio is selected
@@ -1485,29 +1500,27 @@ public class ImageComponentImage implements IImagesVarKeys {
 	public ImageData createLegendData(final float _minimum, 
 			                         final float _maximum,
 			                         final PaletteData palette) {
-		// Check for zero length
-		float[] screenLegendData = new float[100];
-		float _scale = (_maximum-_minimum)/100.f;
-		for (int i=0; i<100; i++) {
-			screenLegendData[i] = _maximum-_scale*(float)i;
-		}
 
-		// Loop over pixels
-		float scale_8bit;
-		if (_maximum > _minimum) {
-			scale_8bit = 255f / (_maximum - _minimum);
-		} else {
-			scale_8bit = 1f;
-		}
+	
 		byte[] legendAsByte = new byte[100];
 		float scaled_pixel;
 		byte pixel;
+		float scaled=0;
 		for (int i = 0; i < 100; i++) {
-			scaled_pixel = screenLegendData[i] * scale_8bit;
+			
+			scaled_pixel=scaled;
+			scaled=scaled+2.56f;
+				
 			// Keep it in bounds
 			pixel = (byte) (0x000000FF & ((int) scaled_pixel));
+			
+			
 			legendAsByte[i] = pixel;
 		}
+
+		
+		
+
 		ImageData imageData = new ImageData(1, 100, 8, palette, 1, legendAsByte);
 		return imageData;
 	}	
@@ -1529,13 +1542,17 @@ public class ImageComponentImage implements IImagesVarKeys {
 		// use only 9% of width to leave space between image and legend
 //		bounds.width = (int)(bounds.width*.09); 
 //		bounds.height = (int)(bounds.height*.99); 
-		bounds.width = 42; 
+		bounds.width = ImageComponentUI.getCanvaslegendsize(); 
 		bounds.height = bounds.height-2; 
+
 		// determine how much each dimension needs to be scaled by
-		xScale = (double) 1 / (double) bounds.width;
+	/*	xScale = (double) 1 / (double) bounds.width;
 		yScale = (double) 100 / (double) bounds.height;
 		int xscaledTo = (int) ((double) 1 / xScale);
-		int yscaledTo = (int) ((double) 100 / yScale);
+		int yscaledTo = (int) ((double) 100 / yScale);*/
+		int xscaledTo=bounds.width;
+		int yscaledTo=bounds.height;
+
 		if (data == null) {
 			logger.debug("data is null !");
 			legend = null;
@@ -1551,20 +1568,74 @@ public class ImageComponentImage implements IImagesVarKeys {
 	 */
 	private void drawLegend(float min, float max) {
 		if (imageCanvasGC == null || legend == null) return;
+		if (imageCanvasGC == null || legend == null) return;
 		Rectangle bounds = imageCanvas.getBounds();
 		// draw the legend offset 10% of the width and height of the legend area to leave some space
 		// between the legend and the image
-//		int legend_width = (int)((float)bounds.width*.905f);
-		int legend_width = bounds.width-43;
-		int legend_height = 1;
-		imageCanvasGC.drawImage(legend, legend_width, legend_height);
+		// int legend_width = (int)((float)bounds.width*.905f);
+		//int legend_width = bounds.width-43;
+		int legend_height = 1;		
+
+		legendCanvasGC.drawImage(legend, 0, 0);		
 		Font font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
-		imageCanvasGC.setFont(font);
-		imageCanvasGC.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
-		imageCanvasGC.drawText(Integer.toString((int)max), legend_width, legend_height);
-		imageCanvasGC.drawText(Integer.toString((int)min), legend_width, bounds.height-legend_height-20);
+		legendCanvasGC.setFont(font);
+		legendCanvasGC.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
+		//legendCanvasGC.drawText(Integer.toString((int)max), 0, 0);
+		//legendCanvasGC.drawText(Integer.toString((int)min), 0, bounds.height-legend_height-20);
+
+	
+		String maxConvertInt ;
+		maxConvertInt=Integer.toString((int)max);
+		String maxformated = null;
+		NumberFormat formatter = new DecimalFormat();		
+		formatter=new DecimalFormat("0.##E0");
+		int maxLenghInt = maxConvertInt.length();
+		int maxLenghString;
+		maxLenghString=Float.toString((float)max).length();
+		maxformated=formatter.format(max);
+		int i=0;
+	
+		if (maxLenghInt<6){
+			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
+			legendCanvasGC.setFont(font);
+			legendCanvasGC.drawText(Integer.toString((int)max), 0, 0);			
+		}
+		else if (6<=maxLenghString){				
+			font = new Font(display,"Arial",11,SWT.BOLD | SWT.ITALIC); 
+			legendCanvasGC.setFont(font);
+			legendCanvasGC.drawText(maxformated, 0, 0);
+		}	
+		
+		String minConvertInt ;
+		minConvertInt=Integer.toString((int)min);
+		String minformated = null;
+		int minLenghInt = minConvertInt.length();
+		minformated=formatter.format(min);
+
+		
+		
+		
+		if (minLenghInt<6){
+			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
+			legendCanvasGC.setFont(font);
+			legendCanvasGC.drawText(Integer.toString((int)min), 0, bounds.height-legend_height-20);	
+			
+		}
+		else if (6<=minLenghInt){		
+		
+			font = new Font(display,"Arial",11,SWT.BOLD | SWT.ITALIC); 
+			legendCanvasGC.setFont(font);
+			legendCanvasGC.drawText(minformated, 0, bounds.height-legend_height-20);
+		
+		}
+		
 		font.dispose();
 	}
+	
+	
+	
+	
+	
 	/**
 	 * Creates a drop target on the imageCanvas. TextTransfers and FileTransfers
 	 * are allowed. Only the first fileName in an array is used.
