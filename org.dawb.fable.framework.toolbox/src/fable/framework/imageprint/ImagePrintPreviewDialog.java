@@ -114,6 +114,8 @@ public class ImagePrintPreviewDialog extends Dialog {
 		grid.numColumns = 2;
 		group.setLayout(grid);
 		GridDataFactory.fillDefaults().applyTo(group);
+		
+	
 
 		portraitButton = new Button(group, SWT.RADIO);
 		portraitButton.setText("Portrait");
@@ -252,6 +254,7 @@ public class ImagePrintPreviewDialog extends Dialog {
 		canvasBounds.height -= 2 * CANVAS_BORDER;
 		if (settings.getPrinterData()!=null)
 		    ImagePrintUtils.paintPreview(gc, canvas, canvasBounds, image, settings);
+		
 	}
 
 	/**
