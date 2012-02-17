@@ -31,6 +31,7 @@ import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -291,6 +292,8 @@ public class ImageComponentImage implements IImagesVarKeys {
 				displayImage();
 			}
 		});
+		
+
 		imageCanvas.addMouseMoveListener(new MouseMoveListener() {
 			// KE: setXORMode doesn't work on some Macs. There is no easy
 			// workaround, so use @SuppressWarnings to avoid warnings that
@@ -299,7 +302,13 @@ public class ImageComponentImage implements IImagesVarKeys {
 			public void mouseMove(MouseEvent event) {
 				if (image != null) {
 					showPixelAtCursor(event.x, event.y);
+					 Cursor cursor = display.getSystemCursor(SWT.CURSOR_ARROW);//selectiom arrow
+					 imageCanvas.setCursor(cursor);
+					
+
 					if (selectingOn) {
+						cursor = display.getSystemCursor(SWT.CURSOR_HAND);//selection hand
+						imageCanvas.setCursor(cursor);
 						int width = event.x - xSelectionStart;
 						int height = event.y - ySelectionStart;
 						imageCanvasGC.setForeground(display
@@ -310,9 +319,11 @@ public class ImageComponentImage implements IImagesVarKeys {
 								|| zoomSelection == ZoomSelection.PROFILE
 								|| zoomSelection == ZoomSelection.RELIEF
 								|| zoomSelection == ZoomSelection.ROCKINGCURVE) {
+							
 							Rectangle selectedRectangle = new Rectangle(
 									xSelectionStart, ySelectionStart, width,
 									height);
+							
 							imageCanvasGC.setLineWidth(1);
 							imageCanvasGC.setXORMode(true);
 							imageCanvasGC.drawRectangle(selectedRectangle);
@@ -330,6 +341,8 @@ public class ImageComponentImage implements IImagesVarKeys {
 				}
 			}
 		});
+		
+		
 		imageCanvas.addListener(SWT.MouseExit, new Listener() {
 			public void handleEvent(Event event) {
 				controls.setStatusText("");
@@ -1596,8 +1609,16 @@ public class ImageComponentImage implements IImagesVarKeys {
 		maxLenghString=Float.toString((float)max).length();
 		maxformated=formatter.format(max);
 		int i=0;
-	
-		if (maxLenghInt<6){
+		
+		
+		
+		if (maxLenghInt<2 && max !=0){
+			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
+			legendCanvasGC.setFont(font);
+			legendCanvasGC.drawText(Float.toString((float)max), 0, 0);
+		}
+			
+		else if (maxLenghInt>=2 & maxLenghInt<6|| max==0){
 			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
 			legendCanvasGC.setFont(font);
 			legendCanvasGC.drawText(Integer.toString((int)max), 0, 0);			
@@ -1615,9 +1636,13 @@ public class ImageComponentImage implements IImagesVarKeys {
 		minformated=formatter.format(min);
 
 		
+		if (minLenghInt<2  && min !=0){
+			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
+			legendCanvasGC.setFont(font);
+			legendCanvasGC.drawText(Float.toString((float)min), 0, bounds.height-legend_height-20);	
+		}
 		
-		
-		if (minLenghInt<6){
+		if ((minLenghInt>=2 & minLenghInt<6)|| min==0){
 			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
 			legendCanvasGC.setFont(font);
 			legendCanvasGC.drawText(Integer.toString((int)min), 0, bounds.height-legend_height-20);	
