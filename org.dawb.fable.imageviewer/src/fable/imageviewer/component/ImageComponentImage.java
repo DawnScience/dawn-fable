@@ -105,6 +105,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 	 * The SWT Image legend that is drawn on the Canvas.
 	 */
 	private Image legend = null;
+	
 	/**
 	 * The device-independent description of the image.
 	 */
@@ -203,7 +204,6 @@ public class ImageComponentImage implements IImagesVarKeys {
 	private Boolean legendDraw = false;
 	private Canvas canvasLegend;
 	private GC legendCanvasGC;
-
 
 
 	/**
@@ -1473,6 +1473,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 	private void drawImage(boolean doSelection) {
 		if (imageCanvasGC == null || image == null) return;
 		imageCanvasGC.drawImage(image, 0, 0);
+		
 		if (iv.isPeaksOn()) {
 			showPeaks();
 		}
@@ -1500,16 +1501,16 @@ public class ImageComponentImage implements IImagesVarKeys {
 	public ImageData createLegendData(final float _minimum, 
 			                         final float _maximum,
 			                         final PaletteData palette) {
-
+ 
 	
 		byte[] legendAsByte = new byte[100];
 		float scaled_pixel;
 		byte pixel;
-		float scaled=0;
+		float scaled=255;
 		for (int i = 0; i < 100; i++) {
 			
 			scaled_pixel=scaled;
-			scaled=scaled+2.56f;
+			scaled=scaled-2.56f;
 				
 			// Keep it in bounds
 			pixel = (byte) (0x000000FF & ((int) scaled_pixel));
@@ -1559,6 +1560,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 		} else {
 			legend = new Image(Display.getCurrent(), data.scaledTo(xscaledTo,
 					yscaledTo));
+	
 		}
 		return legend;
 	}
@@ -2122,6 +2124,10 @@ public class ImageComponentImage implements IImagesVarKeys {
 	 */
 	public Image getImage() {
 		return image;
+	}
+	
+	public Image getImageLegend() {
+		return legend;
 	}
 
 	public boolean isDisposed() {
