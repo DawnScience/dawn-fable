@@ -212,6 +212,9 @@ public class ImageComponentImage implements IImagesVarKeys {
 	private int selectionY;
 	private int selectionWidth;
 	private int selectionHeight;
+	private int startX;
+	private int startY;
+	private boolean keydownin;
 	
 	private Rectangle RectangleSelection;
 
@@ -422,13 +425,10 @@ public class ImageComponentImage implements IImagesVarKeys {
 			}
 
 			public void mouseDown(MouseEvent ev) {
-				if(intoselection){
-					
-					System.out.println("clique dedans");
-				}
+				
 				if (image == null)
 					return;
-				if (ev.button == 1) {
+				if (ev.button == 1 && !intoselection) {
 					// Btn1
 					// Only allow these actions for Btn1. If allowed for Btn3,
 					// they happen when the context menu is selected. In the
@@ -451,32 +451,76 @@ public class ImageComponentImage implements IImagesVarKeys {
 						xSelectionStart = ev.x;
 						ySelectionStart = ev.y;
 					}
+					keydownin=false;
 				}
+				else{
+
+					startX=ev.x;
+					startY=ev.y;
+					keydownin=true;
+					
+					
+				}
+				
+				
 			}
 
 			public void mouseUp(MouseEvent ev) {
+			
+				 if (keydownin) {
+					// RectangleSelection=null;
+					
+					 	selectedArea.x=ev.x+selectionX-startX;
+					 	selectedArea.y=ev.y+selectionY-startY;
+					 	
+						selectedArea.width = selectionWidth;						
+						selectedArea.height = selectionHeight;
+						
+						imageCanvasGC.setForeground(display
+								.getSystemColor(SWT.COLOR_WHITE));
+						drawImage(false);
+						imageChanged = true;
+						newSelection = true;
+						if (debug1) {
+							System.out.println("\nmouseUp calling showSelection "
+									+ "imageChanged=" + imageChanged);
+							System.out.printf("  \"%s\"\n", iv.getPartName());
+						}
+						showSelection(false);
+					
+				 }
+					
+				 else if ((xSelectionStart != ev.x || ySelectionStart != ev.y) && !keydownin){
+						selectedArea.x = xSelectionStart; //cadre
+						selectionX=xSelectionStart;/*******************/
+						selectedArea.y = ySelectionStart;
+						selectionY=ySelectionStart;/*******************/
+						selectedArea.width = ev.x - selectedArea.x;
+						selectionWidth=selectedArea.width;/*******************/
+						selectedArea.height = ev.y - selectedArea.y;
+						selectionHeight=selectedArea.height;/*******************/
+						imageCanvasGC.setForeground(display
+								.getSystemColor(SWT.COLOR_WHITE));
+						drawImage(false);
+						imageChanged = true;
+						newSelection = true;
+						if (debug1) {
+							System.out.println("\nmouseUp calling showSelection "
+									+ "imageChanged=" + imageChanged);
+							System.out.printf("  \"%s\"\n", iv.getPartName());
+						}
+						showSelection(false);
+					}
 				if (image == null)
 					return;
 				if (!selectingOn)
 					return;
+			
+				
+				
 				/* only update the selection if something has been selected */
-				if (xSelectionStart != ev.x || ySelectionStart != ev.y) {
-					selectedArea.x = xSelectionStart; //cadre
-					selectedArea.y = ySelectionStart;
-					selectedArea.width = ev.x - selectedArea.x;
-					selectedArea.height = ev.y - selectedArea.y;
-					imageCanvasGC.setForeground(display
-							.getSystemColor(SWT.COLOR_WHITE));
-					drawImage(false);
-					imageChanged = true;
-					newSelection = true;
-					if (debug1) {
-						System.out.println("\nmouseUp calling showSelection "
-								+ "imageChanged=" + imageChanged);
-						System.out.printf("  \"%s\"\n", iv.getPartName());
-					}
-					showSelection(false);
-				}
+			
+			
 				selectingOn = false;
 			}
 		});

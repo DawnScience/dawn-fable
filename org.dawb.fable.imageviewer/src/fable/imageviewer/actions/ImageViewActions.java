@@ -249,8 +249,8 @@ public class ImageViewActions implements IImagesVarKeys {
 		printPreviewAction = new Action("Print Preview") {
 			@Override
 			public void run() {
-				//Image image = controls.getImage().getImage();
-				Image image = controls.getImage().getImageLegend();
+				Image image = controls.getImage().getImage();
+				//Image image = controls.getImage().getImageLegend();
 				
 				if (image == null) {
 					return;
