@@ -40,6 +40,7 @@ import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -97,7 +98,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 	/**
 	 * The GC for this image.
 	 */
-	private GC imageCanvasGC;
+	private GC selectedRectangle;
 	/**
 	 * The SWT image that is drawn on the Canvas.
 	 */
@@ -205,7 +206,14 @@ public class ImageComponentImage implements IImagesVarKeys {
 	private Boolean legendDraw = false;
 	private Canvas canvasLegend;
 	private GC legendCanvasGC;
-
+	private GC imageCanvasGC;
+	private boolean intoselection=false;
+	private int selectionX;
+	private int selectionY;
+	private int selectionWidth;
+	private int selectionHeight;
+	
+	private Rectangle RectangleSelection;
 
 	/**
 	 * Constructor.
@@ -232,6 +240,8 @@ public class ImageComponentImage implements IImagesVarKeys {
 		if (iv == null || controls == null)
 			return;
 
+
+		
 		imageCanvas = controls.getImageCanvas();
 		display = iv.getDisplay();
 		imageCanvas.setBackground(display.getSystemColor(SWT.COLOR_DARK_GRAY));
@@ -249,6 +259,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 		Rectangle bounds = imageCanvas.getBounds();
 		canvasWidth = bounds.width;
 		canvasHeight = bounds.height;
+
 		imageCanvas.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				imageCanvasGC.dispose();
@@ -271,7 +282,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 					// not to lose pixels
 					imageXScale /= xScale;
 					imageYScale /= yScale;
-					// Change the selectedArea to track width and height
+					// Change the selectedArea to track width and heightz
 					// changes (is subject to roundoff)
 					selectedArea.width = (int) Math
 							.round((double) selectedArea.width * imageXScale);
@@ -293,6 +304,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 			}
 		});
 		
+	
 
 		imageCanvas.addMouseMoveListener(new MouseMoveListener() {
 			// KE: setXORMode doesn't work on some Macs. There is no easy
@@ -324,6 +336,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 									xSelectionStart, ySelectionStart, width,
 									height);
 							
+							RectangleSelection=selectedRectangle;									
 							imageCanvasGC.setLineWidth(1);
 							imageCanvasGC.setXORMode(true);
 							imageCanvasGC.drawRectangle(selectedRectangle);
@@ -337,10 +350,34 @@ public class ImageComponentImage implements IImagesVarKeys {
 						} else if (zoomSelection == ZoomSelection.NONE) {
 							// Do nothing
 						}
+						
+					
+						
 					}
+					
+				
+					if (inselectbox(event,RectangleSelection)){
+						cursor = display.getSystemCursor(SWT.CURSOR_HAND);
+						imageCanvas.setCursor(cursor);
+						intoselection=true;
+					}
+					
+				
+					
+					
+					
+					else {
+						 cursor = display.getSystemCursor(SWT.CURSOR_ARROW);//selectiom arrow
+						 imageCanvas.setCursor(cursor);
+						 intoselection=false;
+					}
+					
 				}
+			
 			}
 		});
+		
+		
 		
 		
 		imageCanvas.addListener(SWT.MouseExit, new Listener() {
@@ -349,6 +386,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 				if (selectingOn) {
 					drawImage(false);
 					selectingOn = false;
+					RectangleSelection=null;
 				}
 			}
 		});
@@ -363,6 +401,9 @@ public class ImageComponentImage implements IImagesVarKeys {
 						// Rectangle bounds = imageCanvas.getBounds();
 						drawImage(false);
 						selectingOn = false;
+						RectangleSelection=null;
+						
+						
 					}
 					break;
 				}
@@ -375,11 +416,16 @@ public class ImageComponentImage implements IImagesVarKeys {
 					// Rectangle bounds = imageCanvas.getBounds();
 					drawImage(false);
 					selectingOn = false;
+					RectangleSelection=null;
 					selectOn = false;
 				}
 			}
 
 			public void mouseDown(MouseEvent ev) {
+				if(intoselection){
+					
+					System.out.println("clique dedans");
+				}
 				if (image == null)
 					return;
 				if (ev.button == 1) {
@@ -391,11 +437,11 @@ public class ImageComponentImage implements IImagesVarKeys {
 					if ((ev.stateMask & SWT.CTRL) != 0) {
 						selectingOn = false;
 						selectOn = false;
-						showZoom(ev, true);
+						//showZoom(ev, true);
 					} else if ((ev.stateMask & SWT.SHIFT) != 0) {
 						selectingOn = false;
 						selectOn = false;
-						showZoom(ev, false);
+						//showZoom(ev, false);
 					} else if ((ev.stateMask & SWT.ALT) != 0) {
 						selectingOn = false;
 						selectOn = false;
@@ -415,7 +461,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 					return;
 				/* only update the selection if something has been selected */
 				if (xSelectionStart != ev.x || ySelectionStart != ev.y) {
-					selectedArea.x = xSelectionStart;
+					selectedArea.x = xSelectionStart; //cadre
 					selectedArea.y = ySelectionStart;
 					selectedArea.width = ev.x - selectedArea.x;
 					selectedArea.height = ev.y - selectedArea.y;
@@ -2075,6 +2121,56 @@ public class ImageComponentImage implements IImagesVarKeys {
 		selectingOn = false;
 		selectOn = false;
 	}
+	
+	
+	private boolean inselectbox(MouseEvent event,Rectangle RectangleSelection){
+
+		 if(		
+				RectangleSelection.x<(RectangleSelection.width+RectangleSelection.x)
+				&&	RectangleSelection.y<(RectangleSelection.height+RectangleSelection.y)
+				&&	event.x>RectangleSelection.x
+				&& 	event.y>RectangleSelection.y
+				&& 	event.x<(RectangleSelection.x+RectangleSelection.width)
+				&& 	event.y<(RectangleSelection.y+RectangleSelection.height)){
+			 return true;
+		
+		}
+		
+		else if(
+				RectangleSelection.x>(RectangleSelection.width+RectangleSelection.x)	
+				&&	RectangleSelection.y<(RectangleSelection.height+RectangleSelection.y)
+				&&	event.x<RectangleSelection.x
+				&& event.y>RectangleSelection.y
+				&& event.x>(RectangleSelection.x+RectangleSelection.width)
+				&& event.y<(RectangleSelection.y+RectangleSelection.height)){
+			return true;
+				
+	
+		}
+		
+		
+		else if(
+				RectangleSelection.x<(RectangleSelection.width+RectangleSelection.x)
+				&&	RectangleSelection.y>(RectangleSelection.height+RectangleSelection.y)
+				&&	event.x>RectangleSelection.x
+				&& 	event.y<RectangleSelection.y
+				&& 	event.x<(RectangleSelection.x+RectangleSelection.width)
+				&& 	event.y>(RectangleSelection.y+RectangleSelection.height)){
+			return true;
+		}
+		
+		
+		else if(
+				RectangleSelection.x>(RectangleSelection.width+RectangleSelection.x)	
+				&&	RectangleSelection.y>(RectangleSelection.height+RectangleSelection.y)
+				&&	event.x<RectangleSelection.x
+				&& event.y<RectangleSelection.y
+				&& event.x>(RectangleSelection.x+RectangleSelection.width)
+				&& event.y>(RectangleSelection.y+RectangleSelection.height)){
+			return true;
+		}
+		else return false;
+	}
 
 	// Getters and setters
 
@@ -2164,6 +2260,14 @@ public class ImageComponentImage implements IImagesVarKeys {
 	public void setLegendOn(Boolean drawLegendOn) {
 		legendDraw = drawLegendOn;
 		displayImage();
+	}
+
+	public GC getSelectedRectangle() {
+		return selectedRectangle;
+	}
+
+	public void setSelectedRectangle(GC selectedRectangle) {
+		this.selectedRectangle = selectedRectangle;
 	}
 
 }
