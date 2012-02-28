@@ -317,7 +317,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 			public void mouseMove(MouseEvent event) {
 				if (image != null) {
 					showPixelAtCursor(event.x, event.y);
-					 Cursor cursor = display.getSystemCursor(SWT.CURSOR_ARROW);//selectiom arrow
+					 Cursor cursor = display.getSystemCursor(SWT.CURSOR_ARROW);//selection arrow
 					 imageCanvas.setCursor(cursor);
 					
 
@@ -353,9 +353,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 						} else if (zoomSelection == ZoomSelection.NONE) {
 							// Do nothing
 						}
-						
-					
-						
+
 					}
 					
 				
@@ -363,6 +361,9 @@ public class ImageComponentImage implements IImagesVarKeys {
 						cursor = display.getSystemCursor(SWT.CURSOR_HAND);
 						imageCanvas.setCursor(cursor);
 						intoselection=true;
+					
+						
+						
 					}
 					
 				
@@ -468,7 +469,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 			public void mouseUp(MouseEvent ev) {
 			
 				 if (keydownin) {
-					// RectangleSelection=null;
+				
 					
 					 	selectedArea.x=ev.x+selectionX-startX;
 					 	selectedArea.y=ev.y+selectionY-startY;
