@@ -214,7 +214,12 @@ public class ImageComponentImage implements IImagesVarKeys {
 	private int selectionHeight;
 	private int startX;
 	private int startY;
-	private boolean keydownin;
+	private boolean keydownOnSelection;
+	private boolean clickonselection;
+	private int nbBoxSelected=0;
+	private int varX;
+	private int varY;
+	
 	
 	private Rectangle RectangleSelection;
 
@@ -321,7 +326,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 					 imageCanvas.setCursor(cursor);
 					
 
-					if (selectingOn) {
+					if (selectingOn && !keydownOnSelection) {
 						cursor = display.getSystemCursor(SWT.CURSOR_HAND);//selection hand
 						imageCanvas.setCursor(cursor);
 						int width = event.x - xSelectionStart;
@@ -352,29 +357,74 @@ public class ImageComponentImage implements IImagesVarKeys {
 							imageCanvasGC.setXORMode(false);
 						} else if (zoomSelection == ZoomSelection.NONE) {
 							// Do nothing
-						}
-
+						}					
 					}
-					
-				
+	
 					if (inselectbox(event,RectangleSelection)){
 						cursor = display.getSystemCursor(SWT.CURSOR_HAND);
 						imageCanvas.setCursor(cursor);
-						intoselection=true;
-					
-						
-						
+						intoselection=true;												
 					}
 					
-				
 					
-					
+
 					
 					else {
-						 cursor = display.getSystemCursor(SWT.CURSOR_ARROW);//selectiom arrow
+						 cursor = display.getSystemCursor(SWT.CURSOR_ARROW);
 						 imageCanvas.setCursor(cursor);
 						 intoselection=false;
 					}
+					
+					
+					
+					
+					if(clickonselection){//if click on selection
+						
+						if(nbBoxSelected>=2){
+							selectionX=varX;
+							selectionY=varY;
+						}
+							
+						
+						drawImage(false);
+						Rectangle selectedRectangle = null;
+						selectedArea.x=event.x+selectionX-startX;
+					 	selectedArea.y=event.y+selectionY-startY;
+						
+						 selectedRectangle = new Rectangle(
+								selectedArea.x, selectedArea.y, selectionWidth,
+								selectionHeight);
+						
+						RectangleSelection=selectedRectangle;									
+						imageCanvasGC.setLineWidth(1);
+						imageCanvasGC.setXORMode(true);
+						imageCanvasGC.drawRectangle(selectedRectangle);
+						imageCanvasGC.setXORMode(false);
+					
+						
+						/*****************************************************************/
+						
+
+						
+						imageCanvasGC.setForeground(display
+								.getSystemColor(SWT.COLOR_WHITE));
+						drawImage(false);
+						imageChanged = true;
+						newSelection = true;
+						if (debug1) {
+							System.out.println("\nmouseUp calling showSelection "
+									+ "imageChanged=" + imageChanged);
+							System.out.printf("  \"%s\"\n", iv.getPartName());
+						}
+						showSelection(false);
+						
+					
+						/*****************************************************************/
+						
+						
+					}
+					
+					
 					
 				}
 			
@@ -391,6 +441,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 					drawImage(false);
 					selectingOn = false;
 					RectangleSelection=null;
+					nbBoxSelected=0;
 				}
 			}
 		});
@@ -406,7 +457,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 						drawImage(false);
 						selectingOn = false;
 						RectangleSelection=null;
-						
+						nbBoxSelected=0;
 						
 					}
 					break;
@@ -422,10 +473,12 @@ public class ImageComponentImage implements IImagesVarKeys {
 					selectingOn = false;
 					RectangleSelection=null;
 					selectOn = false;
+					nbBoxSelected=0;
 				}
 			}
 
 			public void mouseDown(MouseEvent ev) {
+			
 				
 				if (image == null)
 					return;
@@ -448,31 +501,46 @@ public class ImageComponentImage implements IImagesVarKeys {
 						selectOn = false;
 						resetZoom();
 					} else {
+						nbBoxSelected=0;
 						selectingOn = true;
 						xSelectionStart = ev.x;
 						ySelectionStart = ev.y;
 					}
-					keydownin=false;
+					keydownOnSelection=false;
 				}
-				else{
-
+				else if (intoselection){
+					nbBoxSelected=nbBoxSelected+1;
 					startX=ev.x;
 					startY=ev.y;
-					keydownin=true;
-					
+					keydownOnSelection=true;
+					clickonselection=true; /*<-----------------*/
 					
 				}
+				
+				
 				
 				
 			}
 
 			public void mouseUp(MouseEvent ev) {
-			
-				 if (keydownin) {
+		
+				//System.out.println(nbBoxSelected);
 				
+				
+				if(nbBoxSelected>=2){
+					selectionX=varX;
+					selectionY=varY;
+				}
 					
+				
+				clickonselection=false; /*<-----------------*/
+				 if (keydownOnSelection) {
+					
+					 	
 					 	selectedArea.x=ev.x+selectionX-startX;
+					 	varX=selectedArea.x;
 					 	selectedArea.y=ev.y+selectionY-startY;
+					 	varY=selectedArea.y;
 					 	
 						selectedArea.width = selectionWidth;						
 						selectedArea.height = selectionHeight;
@@ -491,7 +559,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 					
 				 }
 					
-				 else if ((xSelectionStart != ev.x || ySelectionStart != ev.y) && !keydownin){
+				 else if ((xSelectionStart != ev.x || ySelectionStart != ev.y) && !keydownOnSelection){
 						selectedArea.x = xSelectionStart; //cadre
 						selectionX=xSelectionStart;/*******************/
 						selectedArea.y = ySelectionStart;
@@ -511,7 +579,10 @@ public class ImageComponentImage implements IImagesVarKeys {
 							System.out.printf("  \"%s\"\n", iv.getPartName());
 						}
 						showSelection(false);
+					
 					}
+				 
+				 
 				if (image == null)
 					return;
 				if (!selectingOn)
