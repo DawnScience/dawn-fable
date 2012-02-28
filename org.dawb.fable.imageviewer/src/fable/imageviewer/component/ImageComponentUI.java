@@ -90,7 +90,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 	/**
 	 * Indicates when the legend is visible.
 	 */
-	private boolean legendShowing=true;
+	private boolean legendShowing=false;
 	/**
 	 * The Display for this view.
 	 */
@@ -221,7 +221,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 		
 		GridUtils.removeMargins(legendComposite);
 		GridUtils.setVisible(legendComposite, true);
-		this.image.setLegendOn(true);
+		this.image.setLegendOn(false);
 			
 		canvaslegend=new Canvas(legendComposite,SWT.NONE);
 		canvaslegend.setBackground(display.getSystemColor(SWT.COLOR_RED));
@@ -230,7 +230,9 @@ public class ImageComponentUI implements IImagesVarKeys {
 		gridDataLegend.widthHint = canvaslegendsize;	
 		canvaslegend.setLayoutData(gridDataLegend);
 		canvaslegend.layout();
-
+		
+        GridUtils.setVisible(legendComposite, false);
+		
 		GridLayout grid2Cols = new GridLayout();
 		// KE: Why 2 cols ?
 		// grid2Cols.numColumns = 2;
