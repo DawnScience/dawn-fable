@@ -9,9 +9,13 @@
  */ 
 package fable.imageviewer.component;
 
+import java.awt.Polygon;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Vector;
+
+import javax.sound.sampled.Line;
+import javax.swing.border.LineBorder;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -36,6 +40,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.LineAttributes;
 import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -208,8 +213,8 @@ public class ImageComponentImage implements IImagesVarKeys {
 	private GC legendCanvasGC;
 	private GC imageCanvasGC;
 	private boolean intoselection=false;
-	private int selectionX;
-	private int selectionY;
+	private int secondSelectionX;
+	private int secondSelectionY;
 	private int selectionWidth;
 	private int selectionHeight;
 	private int startX;
@@ -322,12 +327,12 @@ public class ImageComponentImage implements IImagesVarKeys {
 			public void mouseMove(MouseEvent event) {
 				if (image != null) {
 					showPixelAtCursor(event.x, event.y);
-					 Cursor cursor = display.getSystemCursor(SWT.CURSOR_ARROW);//selection arrow
+					 Cursor cursor = display.getSystemCursor(SWT.CURSOR_ARROW);
 					 imageCanvas.setCursor(cursor);
 					
-
+					
 					if (selectingOn && !keydownOnSelection) {
-						cursor = display.getSystemCursor(SWT.CURSOR_HAND);//selection hand
+						cursor = display.getSystemCursor(SWT.CURSOR_HAND);
 						imageCanvas.setCursor(cursor);
 						int width = event.x - xSelectionStart;
 						int height = event.y - ySelectionStart;
@@ -350,22 +355,35 @@ public class ImageComponentImage implements IImagesVarKeys {
 							imageCanvasGC.drawRectangle(selectedRectangle);
 							imageCanvasGC.setXORMode(false);
 						} else if (zoomSelection == ZoomSelection.LINE) {
+							
+							
 							// imageCanvasGC.setLineWidth(iv.getLinePeakWidth());
 							imageCanvasGC.setXORMode(true);
 							imageCanvasGC.drawLine(xSelectionStart,
 									ySelectionStart, event.x, event.y);
 							imageCanvasGC.setXORMode(false);
+							
 						} else if (zoomSelection == ZoomSelection.NONE) {
 							// Do nothing
 						}					
 					}
-	
-					if (inselectbox(event,RectangleSelection)){
+					
+					if(inselectbox(event,RectangleSelection) &&(iv.getZoomSelection() == ZoomSelection.LINE)){
+						
+						cursor = display.getSystemCursor(SWT.CURSOR_HAND);
+						imageCanvas.setCursor(cursor);
+						intoselection=true;			
+					
+						
+					}
+					
+					else if (inselectbox(event,RectangleSelection) && (iv.getZoomSelection() == ZoomSelection.AREA)){
 						cursor = display.getSystemCursor(SWT.CURSOR_HAND);
 						imageCanvas.setCursor(cursor);
 						intoselection=true;												
 					}
 					
+				
 					
 
 					
@@ -374,22 +392,22 @@ public class ImageComponentImage implements IImagesVarKeys {
 						 imageCanvas.setCursor(cursor);
 						 intoselection=false;
 					}
+			
 					
-					
-					
-					
-					if(clickonselection){//if click on selection
+				
+					//if click on box
+					if(clickonselection){
 						
+						//if moves again the box re calculate coordinates
 						if(nbBoxSelected>=2){
-							selectionX=varX;
-							selectionY=varY;
+							secondSelectionX=varX;
+							secondSelectionY=varY;
 						}
-							
-						
+									
 						drawImage(false);
 						Rectangle selectedRectangle = null;
-						selectedArea.x=event.x+selectionX-startX;
-					 	selectedArea.y=event.y+selectionY-startY;
+						selectedArea.x=event.x+secondSelectionX-startX;
+					 	selectedArea.y=event.y+secondSelectionY-startY;
 						
 						 selectedRectangle = new Rectangle(
 								selectedArea.x, selectedArea.y, selectionWidth,
@@ -401,11 +419,8 @@ public class ImageComponentImage implements IImagesVarKeys {
 						imageCanvasGC.drawRectangle(selectedRectangle);
 						imageCanvasGC.setXORMode(false);
 					
-						
-						/*****************************************************************/
-						
 
-						
+						//box redrew each moves
 						imageCanvasGC.setForeground(display
 								.getSystemColor(SWT.COLOR_WHITE));
 						drawImage(false);
@@ -419,7 +434,6 @@ public class ImageComponentImage implements IImagesVarKeys {
 						showSelection(false);
 						
 					
-						/*****************************************************************/
 						
 						
 					}
@@ -430,6 +444,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 			
 			}
 		});
+		
 		
 		
 		
@@ -523,23 +538,17 @@ public class ImageComponentImage implements IImagesVarKeys {
 			}
 
 			public void mouseUp(MouseEvent ev) {
-		
-				//System.out.println(nbBoxSelected);
-				
-				
+			
 				if(nbBoxSelected>=2){
-					selectionX=varX;
-					selectionY=varY;
-				}
-					
+					secondSelectionX=varX;
+					secondSelectionY=varY;
+				}				
 				
-				clickonselection=false; /*<-----------------*/
-				 if (keydownOnSelection) {
-					
-					 	
-					 	selectedArea.x=ev.x+selectionX-startX;
+				clickonselection=false; 
+				 if (keydownOnSelection) {									 	
+					 	selectedArea.x=ev.x+secondSelectionX-startX;
 					 	varX=selectedArea.x;
-					 	selectedArea.y=ev.y+selectionY-startY;
+					 	selectedArea.y=ev.y+secondSelectionY-startY;
 					 	varY=selectedArea.y;
 					 	
 						selectedArea.width = selectionWidth;						
@@ -561,13 +570,13 @@ public class ImageComponentImage implements IImagesVarKeys {
 					
 				 else if ((xSelectionStart != ev.x || ySelectionStart != ev.y) && !keydownOnSelection){
 						selectedArea.x = xSelectionStart; //cadre
-						selectionX=xSelectionStart;/*******************/
+						secondSelectionX=xSelectionStart;
 						selectedArea.y = ySelectionStart;
-						selectionY=ySelectionStart;/*******************/
+						secondSelectionY=ySelectionStart;
 						selectedArea.width = ev.x - selectedArea.x;
-						selectionWidth=selectedArea.width;/*******************/
+						selectionWidth=selectedArea.width;
 						selectedArea.height = ev.y - selectedArea.y;
-						selectionHeight=selectedArea.height;/*******************/
+						selectionHeight=selectedArea.height;
 						imageCanvasGC.setForeground(display
 								.getSystemColor(SWT.COLOR_WHITE));
 						drawImage(false);
@@ -581,15 +590,11 @@ public class ImageComponentImage implements IImagesVarKeys {
 						showSelection(false);
 					
 					}
-				 
-				 
+			 				 
 				if (image == null)
 					return;
 				if (!selectingOn)
-					return;
-			
-				
-				
+					return;			
 				/* only update the selection if something has been selected */
 			
 			
