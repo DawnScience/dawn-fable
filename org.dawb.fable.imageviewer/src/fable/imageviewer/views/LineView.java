@@ -21,6 +21,7 @@ import org.dawb.common.ui.plot.AbstractPlottingSystem;
 import org.dawb.common.ui.plot.AbstractPlottingSystem.ColorOption;
 import org.dawb.common.ui.plot.PlotType;
 import org.dawb.common.ui.plot.PlottingFactory;
+import org.dawb.common.ui.plot.tool.IToolPageSystem;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
@@ -69,6 +70,19 @@ public class LineView extends ViewPart {
 			logger.error("Cannot locate any plotting systems!", ne);
 		}
 	}
+
+	/**
+	 * Required if you want to make tools work.
+	 */
+	public Object getAdapter(final Class clazz) {
+
+		if (clazz == IToolPageSystem.class) {
+			return plottingSystem;
+		}
+
+		return super.getAdapter(clazz);
+	}
+
 
 	/*
 	 * (non-Javadoc)
