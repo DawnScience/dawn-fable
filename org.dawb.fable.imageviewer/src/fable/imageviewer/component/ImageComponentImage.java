@@ -9,7 +9,6 @@
  */ 
 package fable.imageviewer.component;
 
-import java.awt.Polygon;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Vector;
@@ -224,7 +223,24 @@ public class ImageComponentImage implements IImagesVarKeys {
 	private int nbBoxSelected=0;
 	private int varX;
 	private int varY;
-	
+	private Rectangle RectangleSelectionLine=null;
+	private Rectangle RectangleLinePts1=null;
+	private Rectangle RectangleLinePts2=null;
+	private boolean movePointAvailable1=false;
+	private boolean movePointAvailable2=false;
+	private boolean keydonwonselectionPTS1=false;
+	private boolean keydonwonselectionPTS2=false;
+	private int secondSelectionLineX;// coordinate of the second line point 
+	private int secondSelectionLineY;
+	private boolean movingpts1 =false; // know if pts1 is moving on
+	private boolean movingpts2 =false; // know if pts1 is moving on
+	private int firstSelectionLineX;
+	private int firstSelectionLineY;
+	private int nbmodifpts2=0;
+	private int coordinateFirstPtsX ;
+	private int coordinateFirstPtsY;
+	private int coordinateSecondPtsX ;
+	private int coordinateSecondPtsY;
 	
 	private Rectangle RectangleSelection;
 
@@ -326,6 +342,8 @@ public class ImageComponentImage implements IImagesVarKeys {
 			@SuppressWarnings("deprecation")
 			public void mouseMove(MouseEvent event) {
 				if (image != null) {
+					
+					
 					showPixelAtCursor(event.x, event.y);
 					 Cursor cursor = display.getSystemCursor(SWT.CURSOR_ARROW);
 					 imageCanvas.setCursor(cursor);
@@ -355,8 +373,6 @@ public class ImageComponentImage implements IImagesVarKeys {
 							imageCanvasGC.drawRectangle(selectedRectangle);
 							imageCanvasGC.setXORMode(false);
 						} else if (zoomSelection == ZoomSelection.LINE) {
-							
-							
 							// imageCanvasGC.setLineWidth(iv.getLinePeakWidth());
 							imageCanvasGC.setXORMode(true);
 							imageCanvasGC.drawLine(xSelectionStart,
@@ -368,32 +384,74 @@ public class ImageComponentImage implements IImagesVarKeys {
 						}					
 					}
 					
-					if(inselectbox(event,RectangleSelection) &&(iv.getZoomSelection() == ZoomSelection.LINE)){
-						
+					
+					
+					if ((iv.getZoomSelection() == ZoomSelection.AREA) && inselectbox(event,RectangleSelection) ){
 						cursor = display.getSystemCursor(SWT.CURSOR_HAND);
 						imageCanvas.setCursor(cursor);
-						intoselection=true;			
-					
-						
+						intoselection=true;												
 					}
 					
-					else if (inselectbox(event,RectangleSelection) && (iv.getZoomSelection() == ZoomSelection.AREA)){
+					else if  (((iv.getZoomSelection() == ZoomSelection.LINE)||(iv.getZoomSelection() == ZoomSelection.PROFILE)) && inselectbox(event,RectangleSelectionLine) && !inselectbox(event,RectangleLinePts1) 
+							 && !inselectbox(event,RectangleLinePts2) && !keydonwonselectionPTS1 && !keydonwonselectionPTS2){
 						cursor = display.getSystemCursor(SWT.CURSOR_HAND);
 						imageCanvas.setCursor(cursor);
 						intoselection=true;												
 					}
 					
 				
+					else if ((iv.getZoomSelection() == ZoomSelection.LINE) && inselectbox(event,RectangleLinePts1) ){
+						cursor = display.getSystemCursor(SWT.CURSOR_SIZEALL);
+						imageCanvas.setCursor(cursor);			
+						movePointAvailable1=true;
+						movePointAvailable2=false;
+						intoselection=false;
+						
+						
+					}
 					
+					else if ((iv.getZoomSelection() == ZoomSelection.LINE) && inselectbox(event,RectangleLinePts2) ){
+						cursor = display.getSystemCursor(SWT.CURSOR_HELP);
+						imageCanvas.setCursor(cursor);		
+						movePointAvailable1=false;
+						movePointAvailable2=true;
+						intoselection=false;
+					}
 
 					
 					else {
 						 cursor = display.getSystemCursor(SWT.CURSOR_ARROW);
 						 imageCanvas.setCursor(cursor);
 						 intoselection=false;
+						 movePointAvailable1=false;
+						 movePointAvailable2=false;
 					}
 			
 					
+					if(keydonwonselectionPTS1){ //if keydonwonselectionPTS1, the point number 1 can be moved
+						drawImage(false);
+						cursor = display.getSystemCursor(SWT.CURSOR_SIZEALL);
+						imageCanvas.setCursor(cursor);								
+						imageCanvasGC.setXORMode(true);
+						imageCanvasGC.drawLine( secondSelectionLineX, secondSelectionLineY,event.x, event.y);  //Remember : change values
+						imageCanvasGC.setXORMode(false);
+						movingpts1=true;
+						movingpts2=false;
+			
+					}
+					
+					else if(keydonwonselectionPTS2){//else if keydonwonselectionPTS2, the point number 2 can be moved
+						cursor = display.getSystemCursor(SWT.CURSOR_SIZEALL);
+						imageCanvas.setCursor(cursor);		
+						drawImage(false);
+						imageCanvasGC.setXORMode(true);
+						imageCanvasGC.drawLine( firstSelectionLineX,firstSelectionLineY,event.x, event.y);//Remember : change values
+						imageCanvasGC.setXORMode(false);
+						movingpts2=true;
+						movingpts1=false;
+				
+						
+					}
 				
 					//if click on box
 					if(clickonselection){
@@ -468,7 +526,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 				switch (ev.keyCode) {
 				case SWT.ESC:
 					if (selectingOn) {
-						// Rectangle bounds = imageCanvas.getBounds();
+					
 						drawImage(false);
 						selectingOn = false;
 						RectangleSelection=null;
@@ -483,7 +541,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 		imageCanvas.addMouseListener(new MouseAdapter() {
 			public void mouseDoubleClick(MouseEvent event) {
 				if (selectingOn) {
-					// Rectangle bounds = imageCanvas.getBounds();
+					
 					drawImage(false);
 					selectingOn = false;
 					RectangleSelection=null;
@@ -494,10 +552,18 @@ public class ImageComponentImage implements IImagesVarKeys {
 
 			public void mouseDown(MouseEvent ev) {
 			
-				
+			
 				if (image == null)
 					return;
-				if (ev.button == 1 && !intoselection) {
+				
+				if (movePointAvailable1) //if first point is available to move 
+				keydonwonselectionPTS1=true;
+				
+				else if (movePointAvailable2)//if second point is available to move 
+				keydonwonselectionPTS2=true;	
+				
+			
+				if (ev.button == 1 && !intoselection && !movePointAvailable2) {
 					// Btn1
 					// Only allow these actions for Btn1. If allowed for Btn3,
 					// they happen when the context menu is selected. In the
@@ -523,13 +589,14 @@ public class ImageComponentImage implements IImagesVarKeys {
 					}
 					keydownOnSelection=false;
 				}
+				
+				
 				else if (intoselection){
 					nbBoxSelected=nbBoxSelected+1;
 					startX=ev.x;
 					startY=ev.y;
 					keydownOnSelection=true;
-					clickonselection=true; /*<-----------------*/
-					
+					clickonselection=true; 					
 				}
 				
 				
@@ -538,14 +605,22 @@ public class ImageComponentImage implements IImagesVarKeys {
 			}
 
 			public void mouseUp(MouseEvent ev) {
-			
-				if(nbBoxSelected>=2){
+				
+				if (!keydonwonselectionPTS1 && !keydonwonselectionPTS2){
+				firstSelectionLineX=xSelectionStart;
+				firstSelectionLineY=ySelectionStart;
+				secondSelectionLineX=ev.x;
+				secondSelectionLineY=ev.y;		
+				}
+		
+				
+				if(nbBoxSelected>=2){ // recalculate after re selecting the boxes
 					secondSelectionX=varX;
 					secondSelectionY=varY;
 				}				
 				
 				clickonselection=false; 
-				 if (keydownOnSelection) {									 	
+				 if (keydownOnSelection) {			//for ZOOM.AREA						 	
 					 	selectedArea.x=ev.x+secondSelectionX-startX;
 					 	varX=selectedArea.x;
 					 	selectedArea.y=ev.y+secondSelectionY-startY;
@@ -568,15 +643,24 @@ public class ImageComponentImage implements IImagesVarKeys {
 					
 				 }
 					
-				 else if ((xSelectionStart != ev.x || ySelectionStart != ev.y) && !keydownOnSelection){
-						selectedArea.x = xSelectionStart; //cadre
+				 else if ((xSelectionStart != ev.x || ySelectionStart != ev.y) && !keydownOnSelection && !movingpts1 && !movingpts2){ // on selecting AREA or LINE
+						selectedArea.x = xSelectionStart; 
 						secondSelectionX=xSelectionStart;
 						selectedArea.y = ySelectionStart;
 						secondSelectionY=ySelectionStart;
 						selectedArea.width = ev.x - selectedArea.x;
 						selectionWidth=selectedArea.width;
 						selectedArea.height = ev.y - selectedArea.y;
-						selectionHeight=selectedArea.height;
+						selectionHeight=selectedArea.height;	
+						
+						
+						coordinateFirstPtsX=xSelectionStart; //coordinate of the first point
+						coordinateFirstPtsY=ySelectionStart;
+						coordinateSecondPtsX=xSelectionStart+selectionWidth;//coordinate of the second point
+						coordinateSecondPtsY=ySelectionStart+selectionHeight;
+						
+			
+						
 						imageCanvasGC.setForeground(display
 								.getSystemColor(SWT.COLOR_WHITE));
 						drawImage(false);
@@ -590,6 +674,74 @@ public class ImageComponentImage implements IImagesVarKeys {
 						showSelection(false);
 					
 					}
+				 
+				 else if ((xSelectionStart != ev.x || ySelectionStart != ev.y) && !keydownOnSelection && movingpts1){ // on selecting AREA or LINE / if  moving first point
+		
+					 	selectedArea.x=ev.x;
+					 	secondSelectionX=ev.x;
+						selectedArea.y = ev.y;
+						secondSelectionY=ev.y;	
+						selectedArea.width = coordinateSecondPtsX-ev.x;
+						selectionWidth=selectedArea.width;
+						selectedArea.height = coordinateSecondPtsY-ev.y ;
+						selectionHeight=selectedArea.height;
+												
+						coordinateFirstPtsX=ev.x; //coordinate of the first point
+						coordinateFirstPtsY=ev.y;
+						
+						firstSelectionLineX=coordinateFirstPtsX;//recalculate the first point to display it when moving it
+						firstSelectionLineY=coordinateFirstPtsY;
+					
+						imageCanvasGC.setForeground(display
+								.getSystemColor(SWT.COLOR_WHITE));
+						drawImage(false);
+						imageChanged = true;
+						newSelection = true;
+						if (debug1) {
+							System.out.println("\nmouseUp calling showSelection "
+									+ "imageChanged=" + imageChanged);
+							System.out.printf("  \"%s\"\n", iv.getPartName());
+						}
+						showSelection(false);
+					
+					}
+				 
+				 else if ((xSelectionStart != ev.x || ySelectionStart != ev.y) && !keydownOnSelection && movingpts2){ // on selecting AREA or LINE
+				
+						selectedArea.x=coordinateFirstPtsX;
+					 	secondSelectionX=coordinateFirstPtsX;
+						selectedArea.y = coordinateFirstPtsY;
+						secondSelectionY=coordinateFirstPtsY;	
+						selectedArea.width = ev.x-coordinateFirstPtsX;
+						selectionWidth=selectedArea.width;
+						selectedArea.height = ev.y-coordinateFirstPtsY ;
+						selectionHeight=selectedArea.height;
+		
+						coordinateSecondPtsX=ev.x; //coordinate of the second point
+						coordinateSecondPtsY=ev.y;
+						
+						secondSelectionLineX=coordinateSecondPtsX;//recalculate the second point to display it when moving it
+						secondSelectionLineY=coordinateSecondPtsY;
+					 				 
+						imageCanvasGC.setForeground(display
+								.getSystemColor(SWT.COLOR_WHITE));
+						drawImage(false);
+						imageChanged = true;
+						newSelection = true;
+						if (debug1) {
+							System.out.println("\nmouseUp calling showSelection "
+									+ "imageChanged=" + imageChanged);
+							System.out.printf("  \"%s\"\n", iv.getPartName());
+						}
+						showSelection(false);
+					
+					}
+				 
+
+				
+					
+				 keydonwonselectionPTS1=false;// stop moving
+					keydonwonselectionPTS2=false;
 			 				 
 				if (image == null)
 					return;
@@ -740,12 +892,56 @@ public class ImageComponentImage implements IImagesVarKeys {
 		} else if (zoomSelection == ZoomSelection.LINE) {
 			// setXORMode is not supported on some platforms
 			if (!force) {
+				/*
+				if (movingpts1){
+
+					imageCanvasGC.setXORMode(true);
+					
+					imageCanvasGC.drawLine(firstSelectionLineX ,firstSelectionLineY,secondSelectionLineX, secondSelectionLineY
+							);
+					
+					imageCanvasGC.drawLine(selectedArea.x, selectedArea.y,
+							selectedArea.x + selectedArea.width, selectedArea.y
+							+ selectedArea.height);
+					RectangleSelectionLine = new Rectangle(selectedArea.x, selectedArea.y,
+							selectedArea.width, selectedArea.height);
+					
+					
+					*//*****************//*				
+					*//*****************//*
+					RectangleLinePts1 =  new Rectangle(selectedArea.x -6, selectedArea.y-6,
+							12, 12);
+					RectangleLinePts2 =  new Rectangle(selectedArea.x+selectedArea.width -6, selectedArea.y+selectedArea.height-6,
+							12, 12);
+					*//*****************//*
+					
+					imageCanvasGC.setLineWidth(1);
+					imageCanvasGC.setXORMode(false);
+					movingpts1=false;
+					movingpts2=false;
+					
+				}
+			*/
+	
+				
+					
+				//else{
 				imageCanvasGC.setXORMode(true);
 				imageCanvasGC.drawLine(selectedArea.x, selectedArea.y,
 						selectedArea.x + selectedArea.width, selectedArea.y
 						+ selectedArea.height);
+				RectangleSelectionLine = new Rectangle(selectedArea.x, selectedArea.y,
+						selectedArea.width, selectedArea.height);
+				RectangleLinePts1 =  new Rectangle(selectedArea.x -6, selectedArea.y-6,
+						12, 12);
+				RectangleLinePts2 =  new Rectangle(selectedArea.x+selectedArea.width -6, selectedArea.y+selectedArea.height-6,
+						12, 12);
+				
 				imageCanvasGC.setLineWidth(1);
 				imageCanvasGC.setXORMode(false);
+				movingpts1=false;
+				movingpts2=false;
+				//}
 			}
 			if (imageChanged || force) showSelectedLine();
 			selectOn = true;
