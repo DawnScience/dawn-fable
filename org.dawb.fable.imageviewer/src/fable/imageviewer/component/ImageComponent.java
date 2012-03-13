@@ -894,7 +894,7 @@ public class ImageComponent implements IPropertyChangeListener,
 	 */
 	public void setPalette(int index) {
 
-		this.palette = PaletteFactory.getPallete(index);
+		this.palette = PaletteFactory.getPalette(index);
 		if (controls != null) {
 			controls.setImageScheme(index);
 		}
