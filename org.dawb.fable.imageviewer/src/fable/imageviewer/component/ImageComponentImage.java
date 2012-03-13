@@ -236,11 +236,12 @@ public class ImageComponentImage implements IImagesVarKeys {
 	private boolean movingpts2 =false; // know if pts1 is moving on
 	private int firstSelectionLineX;
 	private int firstSelectionLineY;
-	private int nbmodifpts2=0;
 	private int coordinateFirstPtsX ;
 	private int coordinateFirstPtsY;
 	private int coordinateSecondPtsX ;
 	private int coordinateSecondPtsY;
+	private int movedX;
+	private int movedY;
 	
 	private Rectangle RectangleSelection;
 
@@ -400,7 +401,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 					}
 					
 				
-					else if ((iv.getZoomSelection() == ZoomSelection.LINE) && inselectbox(event,RectangleLinePts1) ){
+					else if ((iv.getZoomSelection() == ZoomSelection.LINE) && inselectbox(event,RectangleLinePts1) ){ //detect first point
 						cursor = display.getSystemCursor(SWT.CURSOR_SIZEALL);
 						imageCanvas.setCursor(cursor);			
 						movePointAvailable1=true;
@@ -410,8 +411,8 @@ public class ImageComponentImage implements IImagesVarKeys {
 						
 					}
 					
-					else if ((iv.getZoomSelection() == ZoomSelection.LINE) && inselectbox(event,RectangleLinePts2) ){
-						cursor = display.getSystemCursor(SWT.CURSOR_HELP);
+					else if ((iv.getZoomSelection() == ZoomSelection.LINE) && inselectbox(event,RectangleLinePts2) ){ //detect second point
+						cursor = display.getSystemCursor(SWT.CURSOR_SIZEALL);
 						imageCanvas.setCursor(cursor);		
 						movePointAvailable1=false;
 						movePointAvailable2=true;
@@ -446,9 +447,9 @@ public class ImageComponentImage implements IImagesVarKeys {
 						drawImage(false);
 						imageCanvasGC.setXORMode(true);
 						imageCanvasGC.drawLine( firstSelectionLineX,firstSelectionLineY,event.x, event.y);//Remember : change values
-						imageCanvasGC.setXORMode(false);
-						movingpts2=true;
+						imageCanvasGC.setXORMode(false);						
 						movingpts1=false;
+						movingpts2=true;
 				
 						
 					}
@@ -551,7 +552,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 			}
 
 			public void mouseDown(MouseEvent ev) {
-			
+	
 			
 				if (image == null)
 					return;
@@ -563,7 +564,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 				keydonwonselectionPTS2=true;	
 				
 			
-				if (ev.button == 1 && !intoselection && !movePointAvailable2) {
+				if (ev.button == 1 && !intoselection  ) {
 					// Btn1
 					// Only allow these actions for Btn1. If allowed for Btn3,
 					// they happen when the context menu is selected. In the
@@ -620,7 +621,11 @@ public class ImageComponentImage implements IImagesVarKeys {
 				}				
 				
 				clickonselection=false; 
-				 if (keydownOnSelection) {			//for ZOOM.AREA						 	
+				 if (keydownOnSelection) {			//for ZOOM.AREA		
+					
+					 movedX=ev.x-startX;
+					 movedY=ev.y-startY;
+					 
 					 	selectedArea.x=ev.x+secondSelectionX-startX;
 					 	varX=selectedArea.x;
 					 	selectedArea.y=ev.y+secondSelectionY-startY;
@@ -628,6 +633,32 @@ public class ImageComponentImage implements IImagesVarKeys {
 					 	
 						selectedArea.width = selectionWidth;						
 						selectedArea.height = selectionHeight;
+						
+						
+						/****** recalculate first and second point after windows moved******/			
+						coordinateFirstPtsX=coordinateFirstPtsX+movedX; 					
+						coordinateFirstPtsY=coordinateFirstPtsY+movedY;
+						
+						coordinateSecondPtsX=coordinateSecondPtsX+movedX;
+						
+						coordinateSecondPtsY=coordinateSecondPtsY+movedY;
+						
+						
+						
+						firstSelectionLineX=coordinateFirstPtsX;
+						firstSelectionLineY=coordinateFirstPtsY;
+						
+						secondSelectionLineX=coordinateSecondPtsX;
+						secondSelectionLineY=coordinateSecondPtsY;
+						
+						System.out.println("------------");
+						System.out.println("------------");
+						System.out.println("------------");
+						System.out.println("deplacement de la fenetre");
+						System.out.println("------------");
+						System.out.println("------------");;
+						
+				
 						
 						imageCanvasGC.setForeground(display
 								.getSystemColor(SWT.COLOR_WHITE));
@@ -652,7 +683,6 @@ public class ImageComponentImage implements IImagesVarKeys {
 						selectionWidth=selectedArea.width;
 						selectedArea.height = ev.y - selectedArea.y;
 						selectionHeight=selectedArea.height;	
-						
 						
 						coordinateFirstPtsX=xSelectionStart; //coordinate of the first point
 						coordinateFirstPtsY=ySelectionStart;
@@ -689,8 +719,8 @@ public class ImageComponentImage implements IImagesVarKeys {
 						coordinateFirstPtsX=ev.x; //coordinate of the first point
 						coordinateFirstPtsY=ev.y;
 						
-						firstSelectionLineX=coordinateFirstPtsX;//recalculate the first point to display it when moving it
-						firstSelectionLineY=coordinateFirstPtsY;
+						firstSelectionLineX=ev.x;//recalculate the first point to display it when moving it
+						firstSelectionLineY=ev.y;
 					
 						imageCanvasGC.setForeground(display
 								.getSystemColor(SWT.COLOR_WHITE));
@@ -708,6 +738,12 @@ public class ImageComponentImage implements IImagesVarKeys {
 				 
 				 else if ((xSelectionStart != ev.x || ySelectionStart != ev.y) && !keydownOnSelection && movingpts2){ // on selecting AREA or LINE
 				
+						System.out.println("***********");
+						System.out.println("***********");
+						System.out.println("***********");
+						System.out.println("deplacement du pts 2");
+						System.out.println("***********");
+						System.out.println("***********");
 						selectedArea.x=coordinateFirstPtsX;
 					 	secondSelectionX=coordinateFirstPtsX;
 						selectedArea.y = coordinateFirstPtsY;
