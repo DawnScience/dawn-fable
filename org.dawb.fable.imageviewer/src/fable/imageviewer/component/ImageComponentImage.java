@@ -2082,22 +2082,24 @@ public class ImageComponentImage implements IImagesVarKeys {
 		int maxLenghString;
 		maxLenghString=Float.toString((float)max).length();
 		maxformated=formatter.format(max);
-		int i=0;
+	
 		
-		
-		
+		//legendCanvasGC.drawText("test", 0, (bounds.height/2)-14);
+	
 		if (maxLenghInt<2 && max !=0){
 			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
 			legendCanvasGC.setFont(font);
 			legendCanvasGC.drawText(Float.toString((float)max), 0, 0);
+			System.out.println("iiiiii");
 		}
 			
-		else if (maxLenghInt>=2 & maxLenghInt<6|| max==0){
+		 if (maxLenghInt>=2 && maxLenghInt<6|| max==0){
 			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
 			legendCanvasGC.setFont(font);
-			legendCanvasGC.drawText(Integer.toString((int)max), 0, 0);			
+			legendCanvasGC.drawText(Integer.toString((int)max), 0, 0);	
+			System.out.println("ooooo");
 		}
-		else if (6<=maxLenghString){				
+		else if (6<=maxLenghInt){				
 			font = new Font(display,"Arial",11,SWT.BOLD | SWT.ITALIC); 
 			legendCanvasGC.setFont(font);
 			legendCanvasGC.drawText(maxformated, 0, 0);
@@ -2108,7 +2110,16 @@ public class ImageComponentImage implements IImagesVarKeys {
 		String minformated = null;
 		int minLenghInt = minConvertInt.length();
 		minformated=formatter.format(min);
-
+		float middle= (max-min)/2;
+		
+		String middleConvertInt;
+		float MiddleValue=(max-min)/2;
+		middleConvertInt=Integer.toString((int)MiddleValue);
+		int middleLenghtInt=middleConvertInt.length();
+		String middleformated=null;
+		middleformated=formatter.format(MiddleValue);
+		
+		
 		
 		if (minLenghInt<2  && min !=0){
 			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
@@ -2116,7 +2127,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 			legendCanvasGC.drawText(Float.toString((float)min), 0, bounds.height-legend_height-20);	
 		}
 		
-		if ((minLenghInt>=2 & minLenghInt<6)|| min==0){
+		if ((minLenghInt>=2 &&  minLenghInt<6)|| min==0){
 			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
 			legendCanvasGC.setFont(font);
 			legendCanvasGC.drawText(Integer.toString((int)min), 0, bounds.height-legend_height-20);	
@@ -2129,6 +2140,34 @@ public class ImageComponentImage implements IImagesVarKeys {
 			legendCanvasGC.drawText(minformated, 0, bounds.height-legend_height-20);
 		
 		}
+		
+		/*******************************/
+		
+		if (middleLenghtInt<2  && middleLenghtInt !=0 && middle !=0.0 ){
+			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
+			legendCanvasGC.setFont(font);
+			legendCanvasGC.drawText(Float.toString((float)middle), 0, (bounds.height/2)-14);
+		}
+		
+		if (middleLenghtInt>=2 && middleLenghtInt<6 || middleLenghtInt==0 || middle ==0.0){
+			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
+			legendCanvasGC.setFont(font);
+			legendCanvasGC.drawText(Integer.toString((int)middle), 0, (bounds.height/2)-14);
+			
+		}
+		else if (6<=middleLenghtInt){		
+		
+			font = new Font(display,"Arial",11,SWT.BOLD | SWT.ITALIC); 
+			legendCanvasGC.setFont(font);
+			legendCanvasGC.drawText(middleformated, 0, (bounds.height/2)-14);
+		
+		}
+		
+		
+		
+		/*******************************/
+		
+		
 		
 		font.dispose();
 	}
