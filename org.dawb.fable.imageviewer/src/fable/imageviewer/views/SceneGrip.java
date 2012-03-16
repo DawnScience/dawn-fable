@@ -9,12 +9,16 @@
  */ 
 package fable.imageviewer.views;
 
+import java.awt.event.MouseWheelEvent;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.opengl.GLCanvas;
@@ -46,7 +50,7 @@ import fable.framework.toolbox.FableUtils;
  * @author Bo Majewski
  */
 public class SceneGrip extends MouseAdapter implements MouseMoveListener,
-		Listener, KeyListener {
+		Listener, KeyListener, MouseWheelListener  {
 	
 	private static Logger logger = LoggerFactory.getLogger(SceneGrip.class);
 
@@ -116,15 +120,21 @@ public class SceneGrip extends MouseAdapter implements MouseMoveListener,
 			this.ydown = e.y;
 		}
 	}
+	
 
-	public void mouseUp(MouseEvent e) {
+
+	public void mouseUp( MouseEvent e) {
+		//System.out.println(event);
 		if (--this.mouseDown == 0) {
 			((Control) e.widget).setCursor(e.widget.getDisplay()
 					.getSystemCursor(SWT.CURSOR_ARROW));
 		}
 	}
+	
+
 
 	public void mouseMove(MouseEvent e) {
+		
 		Point p = ((Control) e.widget).getSize();
 
 		if (this.mouseDown > 0) {
@@ -143,11 +153,12 @@ public class SceneGrip extends MouseAdapter implements MouseMoveListener,
 		}
 	}
 
-	public void handleEvent(Event event) {
-		this.zoff *= 1.1f;
+	public void handleEvent(Event event) {	
+		//this.zoff *= 1.1f; dosent work
 	}
 	
 	public void zoomIn() {
+		
 		this.zoff *= 1.05f;
 	}
 	public void zoomOut() {
@@ -155,6 +166,7 @@ public class SceneGrip extends MouseAdapter implements MouseMoveListener,
 	}
 	
 	public void rotate(final int direction) {
+		
 		switch(direction) {
 		case SWT.ARROW_UP:
 			this.xrot -= 5f;
@@ -204,7 +216,7 @@ public class SceneGrip extends MouseAdapter implements MouseMoveListener,
 
 		translate(e.keyCode);
 		switch (e.keyCode) {
-		
+				
 		case SWT.PAGE_UP:
 			zoomIn();
 			break;
@@ -265,4 +277,23 @@ public class SceneGrip extends MouseAdapter implements MouseMoveListener,
 		canvasWidth = bounds.width;
 		canvasHeight = bounds.height;
 	}
+
+	public void mouseScrolled(MouseWheelEvent e) {
+		// TODO Auto-generated method stub
+		System.out.println(e);
+		}
+
+	@Override
+	public void mouseScrolled(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+		if (e.count>0)zoomIn();
+		else zoomOut();
+	}
+		
+	
+
+	
+	
+	
 }

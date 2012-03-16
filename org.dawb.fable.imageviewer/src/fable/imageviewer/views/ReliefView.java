@@ -287,6 +287,7 @@ public class ReliefView extends ViewPart implements IImageSizeProvider{
 		canvas.addMouseMoveListener(grip);
 		canvas.addListener(SWT.MouseWheel, grip);
 		canvas.addKeyListener(grip);
+		canvas.addMouseWheelListener(grip);
 		// apparently opengl has to be redrawn constantly (why ?)
 		Display.getCurrent().asyncExec(new Runnable() {
 			// int rot = 0;

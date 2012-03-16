@@ -9,6 +9,7 @@
  */ 
 package fable.imageviewer.component;
 
+import java.awt.event.MouseWheelEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Vector;
@@ -30,7 +31,9 @@ import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
@@ -338,6 +341,8 @@ public class ImageComponentImage implements IImagesVarKeys {
 			}
 		});
 		
+		
+		
 	
 
 		imageCanvas.addMouseMoveListener(new MouseMoveListener() {
@@ -351,7 +356,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 					
 					showPixelAtCursor(event.x, event.y);
 					 Cursor cursor = display.getSystemCursor(SWT.CURSOR_ARROW);						
-					 imageCanvas.setCursor(cursor);
+					// imageCanvas.setCursor(cursor);
 					
 					
 					if (selectingOn && !keydownOnSelection) {
@@ -392,7 +397,14 @@ public class ImageComponentImage implements IImagesVarKeys {
 					
 					
 					
+					
 					if ((iv.getZoomSelection() == ZoomSelection.AREA) && inselectbox(event,RectangleSelection) ){
+						cursor = display.getSystemCursor(SWT.CURSOR_HAND);
+						imageCanvas.setCursor(cursor);
+						intoselection=true;												
+					}
+					
+					else if ((iv.getZoomSelection() == ZoomSelection.RELIEF) && inselectbox(event,RectangleSelection) ){
 						cursor = display.getSystemCursor(SWT.CURSOR_HAND);
 						imageCanvas.setCursor(cursor);
 						intoselection=true;												
@@ -586,7 +598,13 @@ public class ImageComponentImage implements IImagesVarKeys {
 			}
 		});
 
+		
+		
+	
+		
+		
 		imageCanvas.addMouseListener(new MouseAdapter() {
+			
 			public void mouseDoubleClick(MouseEvent event) {
 				if (selectingOn) {
 					
@@ -597,6 +615,8 @@ public class ImageComponentImage implements IImagesVarKeys {
 					nbBoxSelected=0;
 				}
 			}
+			
+		
 
 			public void mouseDown(MouseEvent ev) {
 	
