@@ -10,6 +10,7 @@
 package fable.imageviewer.preferences;
 
 import org.dawb.common.ui.image.PaletteFactory;
+import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
@@ -84,6 +85,7 @@ public class ImageviewerPreferencePage extends FieldEditorPreferencePage
 				"Custom coordinates x name :", getFieldEditorParent()));
 		addField(new StringFieldEditor(PreferenceConstants.P_COORD_YNAME,
 				"Custom coordinates y name :", getFieldEditorParent()));
+		addField(new BooleanFieldEditor(PreferenceConstants.P_RELIEFMOVE,"Move 3D relief",getFieldEditorParent()));
 	}
 
 	/*

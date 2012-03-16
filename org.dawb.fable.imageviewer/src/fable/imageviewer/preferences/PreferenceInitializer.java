@@ -41,6 +41,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 		store.setDefault(PreferenceConstants.P_COORD_PIXELHEIGHT, "1");
 		store.setDefault(PreferenceConstants.P_COORD_XNAME, "x");
 		store.setDefault(PreferenceConstants.P_COORD_YNAME, "y");
+		store.setDefault(PreferenceConstants.P_RELIEFMOVE, true);
 		
 		store.setDefault(PreferenceConstants.P_AUTOSCALE,  true);
 		store.setDefault(PreferenceConstants.P_KEEPASPECT, true);

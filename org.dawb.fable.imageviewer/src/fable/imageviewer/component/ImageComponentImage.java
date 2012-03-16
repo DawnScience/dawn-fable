@@ -17,6 +17,7 @@ import java.util.Vector;
 import javax.sound.sampled.Line;
 import javax.swing.border.LineBorder;
 
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
@@ -525,7 +526,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 					}
 				
 					//if click on box
-					if(clickonselection){
+					if(clickonselection && !(iv.getZoomSelection() == ZoomSelection.RELIEF)){
 
 						
 						//if moves again the box re calculate coordinates
@@ -558,7 +559,53 @@ public class ImageComponentImage implements IImagesVarKeys {
 							System.out.printf("  \"%s\"\n", iv.getPartName());
 						}
 						showSelection(false); //redraw the canvas each moves			
-					}				
+					}		
+					
+					else if(clickonselection && (iv.getZoomSelection() == ZoomSelection.RELIEF)){
+				
+						//if moves again the box re calculate coordinates
+						if(nbBoxSelected>=2){
+							secondSelectionX=varX;
+							secondSelectionY=varY;
+						}
+									
+						drawImage(false);
+						Rectangle selectedRectangle = null;
+						selectedArea.x=event.x+secondSelectionX-startX;
+					 	selectedArea.y=event.y+secondSelectionY-startY;
+			
+						
+						 selectedRectangle = new Rectangle(
+								selectedArea.x, selectedArea.y, selectionWidth,
+								selectionHeight);
+					
+						RectangleSelection=selectedRectangle;									
+
+						//box redrew each moves
+						imageCanvasGC.setForeground(display
+								.getSystemColor(SWT.COLOR_WHITE));
+						drawImage(false);
+						imageChanged = true;
+						newSelection = true;
+						if (debug1) {
+							System.out.println("\nmouseUp calling showSelection "
+									+ "imageChanged=" + imageChanged);
+							System.out.printf("  \"%s\"\n", iv.getPartName());
+						}
+						
+							IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
+						//System.out.println(prefs.getString(fable.imageviewer.preferences.PreferenceConstants.P_RELIEFMOVE));
+						if (prefs.getString(fable.imageviewer.preferences.PreferenceConstants.P_RELIEFMOVE) == "true"){
+						showSelection(false); //redraw the canvas each moves			
+						}
+						else{
+							
+							imageCanvasGC.setXORMode(true);
+							imageCanvasGC.drawRectangle(selectedArea);
+							imageCanvasGC.setXORMode(false);
+						}
+						
+					}
 				}			
 			}
 		});

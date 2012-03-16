@@ -11,6 +11,7 @@ package fable.imageviewer.views;
 
 import java.awt.event.MouseWheelEvent;
 
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -32,6 +33,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fable.framework.toolbox.FableUtils;
+import fable.framework.toolboxpreferences.PreferenceConstants;
+import fable.imageviewer.preferences.ImageviewerPreferencePage;
+import fable.imageviewer.rcp.Activator;
 
 
 /**************************************************************************
@@ -124,7 +128,8 @@ public class SceneGrip extends MouseAdapter implements MouseMoveListener,
 
 
 	public void mouseUp( MouseEvent e) {
-		//System.out.println(event);
+	//	IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
+	//System.out.println(prefs.getString(fable.imageviewer.preferences.PreferenceConstants.P_RELIEFMOVE));
 		if (--this.mouseDown == 0) {
 			((Control) e.widget).setCursor(e.widget.getDisplay()
 					.getSystemCursor(SWT.CURSOR_ARROW));

@@ -28,6 +28,7 @@ public class PreferenceConstants {
 	public static final String P_COORD_XNAME = "coordinatesXNamePreference";
 	public static final String P_COORD_YNAME = "coordinatesYNamePreference";
 	public static final String P_PALETTE = "palettePreference";
+	public static final String P_RELIEFMOVE = "moveReliefPreference";
 	
 	public static final String P_AUTOSCALE  = "fable.imageviewer.preferences.autoScale";
 	public static final String P_KEEPASPECT = "fable.imageviewer.preferences.keepAspectRatio";
