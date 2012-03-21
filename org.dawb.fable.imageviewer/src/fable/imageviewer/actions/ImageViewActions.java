@@ -101,10 +101,9 @@ public class ImageViewActions implements IImagesVarKeys {
 		// Legend on/off
 		drawLegendAction = new Action("Show legend",
 				IAction.AS_RADIO_BUTTON) {
-
 			@Override
 			public void run() {
-				controls.setLegendShowing(!controls.getLegendShowing());				
+				controls.setLegendShowing(!controls.getLegendShowing());
 				setChecked(controls.getLegendShowing());
 				
 			}
@@ -121,14 +120,15 @@ public class ImageViewActions implements IImagesVarKeys {
 				if (iv == null) {
 					return;
 				}
-				iv.setUserMinimum(iv.getMinimum(), true);
-				iv.setUserMaximum(iv.getMaximum(), true);
-				if(iv.getImage() != null) {
-					iv.getImage().displayImage();
-				}
+				iv.setUserMinimum(iv.getMinimum());
+				iv.setUserMaximum(iv.getMaximum());
+//				if(iv.getImage() != null) {
+					controls.trackedInitAndDisplayImage();
+//					iv.getImage().initAndDisplayImage();
+//				}
 			}
 		};
-		resetMinMaxAction.setToolTipText("Reset the minimum and maximum "
+		resetMinMaxAction.setToolTipText("Reset the minimun and maximum "
 				+ "for manual intensity scaling to be the image limits");
 
 		// Reapply current zoom (when switching between editors)
@@ -249,9 +249,7 @@ public class ImageViewActions implements IImagesVarKeys {
 		printPreviewAction = new Action("Print Preview") {
 			@Override
 			public void run() {
-				//Image image = controls.getImage().getImage();
-				Image image = controls.getImage().getImageLegend();
-				
+				Image image = controls.getImage().getImage();
 				if (image == null) {
 					return;
 				}

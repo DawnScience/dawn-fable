@@ -24,7 +24,7 @@ import jep.JepException;
 
 import org.dawb.fabio.FabioFile;
 import org.dawb.fabio.FabioFileException;
-import org.dawb.fabio.FableJep;
+//import org.dawb.fabio.FableJep;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -315,12 +315,14 @@ public class RockingCurveView extends ViewPart {
 
 	// KE: Is this method name supposed to start with a cap?
 	public int Integrate() {
+/*
 		FableJep fableJep = null;
 		try {
 			fableJep = FableJep.getFableJep();
 		} catch (Throwable ex) {
 			FableUtils.excMsg(this, "Error in Integrate creating FableJep", ex);
 		}
+*/
 		Vector<FabioFile> fabioFiles = sample.getFilteredfiles();
 		int width, height, npoints;
 		FabioFile fabioFile;
@@ -338,7 +340,7 @@ public class RockingCurveView extends ViewPart {
 				jobMonitor.worked(1);
 				float imageFloat[];
 				fabioFile = fabioFiles.get(i);
-				imageFloat = fabioFile.getImageAsFloat(fableJep);
+				imageFloat = fabioFile.getImageAsFloat();
 				/*
 				 * only do rocking curve for those files which have the same
 				 * size as the center file
@@ -366,8 +368,8 @@ public class RockingCurveView extends ViewPart {
 					rockX[i - rockStart] = Float.NaN;
 					String keyValue = "";
 					try {
-						if (!fabioFile.headerRead)
-							fabioFile.loadHeader(fableJep);
+						if (!fabioFile.isHeaderRead())
+							fabioFile.loadHeader();
 						keyValue = fabioFile.getValue(xAxisItems[xAxis]);
 					} catch (FabioFileException ex) {
 						FableUtils.excNoTraceMsg(this,

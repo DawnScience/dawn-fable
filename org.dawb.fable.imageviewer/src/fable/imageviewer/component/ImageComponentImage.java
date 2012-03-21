@@ -9,8 +9,6 @@
  */ 
 package fable.imageviewer.component;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Vector;
 
 import org.eclipse.swt.SWT;
@@ -59,6 +57,9 @@ import fable.imageviewer.internal.ZoomSelection;
 import fable.imageviewer.model.ImageModel;
 import fable.imageviewer.model.ImageModelFactory;
 import fable.imageviewer.preferences.PreferenceConstants;
+import fable.imageviewer.psf.ImageDataUpscale;
+import fable.imageviewer.psf.PSF;
+import fable.imageviewer.psf.Statistics;
 import fable.imageviewer.rcp.Activator;
 import fable.imageviewer.views.ImageView;
 import fable.imageviewer.views.LineView;
@@ -72,7 +73,6 @@ import fable.imageviewer.views.RockingCurveView;
  * original image, the oriented image, and the oriented original image.
  */
 public class ImageComponentImage implements IImagesVarKeys {
-	
 	private static final boolean debug = false;
 	private static final boolean debug1 = false;
 	private static final float ZOOMFACTOR_LARGE = .5f;
@@ -105,7 +105,6 @@ public class ImageComponentImage implements IImagesVarKeys {
 	 * The SWT Image legend that is drawn on the Canvas.
 	 */
 	private Image legend = null;
-	
 	/**
 	 * The device-independent description of the image.
 	 */
@@ -201,10 +200,9 @@ public class ImageComponentImage implements IImagesVarKeys {
 	private ProfileView profileView;
 	private ReliefView zoomReliefView;
 	private RockingCurveView zoomRockingCurveView;
+	boolean use1d = false; // TODO delete this
+	PSF psf;
 	private Boolean legendDraw = false;
-	private Canvas canvasLegend;
-	private GC legendCanvasGC;
-
 
 	/**
 	 * Constructor.
@@ -217,6 +215,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 		// Get the logger
 		this.iv = iv;
 		this.controls = controls;
+		this.psf = new PSF( 6 );
 		// Set the reference to this image in the ImageView before anything else
 		// is done
 		iv.setImage(this);
@@ -237,13 +236,6 @@ public class ImageComponentImage implements IImagesVarKeys {
 		GridData gridData = new GridData(GridData.FILL, GridData.FILL, true,
 				true);
 		imageCanvas.setLayoutData(gridData);
-		
-		canvasLegend = controls.getCanvaslegend();
-		canvasLegend.setBackground(display.getSystemColor(SWT.COLOR_DARK_GRAY));
-		//
-		legendCanvasGC = new GC(canvasLegend);
-
-		//
 		imageCanvasGC = new GC(imageCanvas);
 		Rectangle bounds = imageCanvas.getBounds();
 		canvasWidth = bounds.width;
@@ -258,7 +250,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 				if (image == null)
 					return;
 				Rectangle bounds = imageCanvas.getBounds();
-				event.gc.fillRectangle(0, 0, (int)(bounds.width), bounds.height);
+				event.gc.fillRectangle(0, 0, bounds.width, bounds.height);
 				if (canvasWidth != bounds.width
 						|| canvasHeight != bounds.height) {
 					double imageXScale = xScale;
@@ -808,21 +800,14 @@ public class ImageComponentImage implements IImagesVarKeys {
 		}
 		try {
 			float[] zoomAreaAsFloat;
-			float areaMinimum, areaMaximum, areaMean;
 			// Calculate zoomAreaAsFloat
 			// TODO: KE: statistics currently necessary for relief and rocking
-			// curve
-			float[] statistics = null;
+			// curve. NG: Calculate it on demand, that is where it is used.
 			if (!iv.isImageDiffOn()) {
 				zoomAreaAsFloat = iv.getImageModel().getData(origRect);
-				statistics = iv.getImageModel().getStatistics(origRect);
 			} else {
 				zoomAreaAsFloat = iv.getImageDiffModel().getData(origRect);
-				statistics = iv.getImageDiffModel().getStatistics(origRect);
 			}
-			areaMinimum = statistics[0];
-			areaMaximum = statistics[1];
-			areaMean = statistics[2];
 			// Set the appropriate view
 			ZoomSelection zoomSelection = iv.getZoomSelection();
 			// DEBUG
@@ -863,11 +848,19 @@ public class ImageComponentImage implements IImagesVarKeys {
 			} else if (zoomSelection == ZoomSelection.RELIEF) {
 				
 						zoomReliefView = (ReliefView) viewPart;
-					if (zoomReliefView != null)
+						if (zoomReliefView != null) {
+							Statistics areaStatistics = null;
+							if (!iv.isImageDiffOn()) {
+								areaStatistics = iv.getImageModel().getStatistics(origRect);
+							} else {
+								areaStatistics = iv.getImageDiffModel().getStatistics(origRect);
+							}
 						zoomReliefView.setImageAsFloat(zoomAreaAsFloat,
-								origRect.width, origRect.height, areaMinimum,
-								areaMaximum, areaMean, iv.getImageModel()
-										.getFileName());
+								origRect.width, origRect.height,
+								areaStatistics.getMinimum(), areaStatistics.getMaximum(),
+								areaStatistics.getMean(),
+								iv.getImageModel().getFileName());
+						}
 				
 			} else if (zoomSelection == ZoomSelection.ROCKINGCURVE) {
 				
@@ -1281,10 +1274,11 @@ public class ImageComponentImage implements IImagesVarKeys {
 		imageRect = rect;
 		calculateMainRectangles();
 		iv.resetCoordinates();
-		// Calculate maximum and minimum
-		float[] statistics = iv.getImageModel().getStatistics(imageRect);
+		// Calculate maximum and minimum, which causes displayImage() 
+		iv.setStatistics( imageRect );
+//		Statistics statistics = iv.getImageModel().getStatistics(imageRect);
 		// This causes displayImage()
-		iv.setStatistics(statistics);
+//		iv.setStatistics(statistics);
 		if (debug) {
 			System.out.printf("\nchangeImageRect [at end]: "
 					+ "imageRect.width=%d " + "imageRect.height=%d "
@@ -1294,36 +1288,120 @@ public class ImageComponentImage implements IImagesVarKeys {
 	}
 
 	/**
-	 * Update the image display.
+	 * Init and update the image display.
 	 */
-	public void displayImage() {
+	public void initAndDisplayImage() {
 		// Abort if there is no image model or data. Note the first check is not
 		// necessary if we use reset for the ImageModel
+		imageData = null;
 		if (iv.getImageModel() == null || iv.getImageModel().getData() == null) {
 			return;
 		}
-
+//		long t0 = System.nanoTime(), t1, t2, t3, t4, t5;
 		// Create the Byte array and ImageData
 		float min, max;
-		final boolean isAutoScale = Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.P_AUTOSCALE);
-		if (isAutoScale) {
-			min = iv.getMinimum();
-			max = 3*iv.getMean();
-			if (max > iv.getMaximum())	
-				max = iv.getMaximum();
-		} else {
-			min = iv.getUserMinimum();
-			max = iv.getUserMaximum();
+//		final boolean isAutoScale = Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.P_AUTOSCALE);
+//		if (isAutoScale) {
+//			min = iv.getMinimum();
+//			max = 3*iv.getMean();
+//			if (max > iv.getMaximum())	
+//				max = iv.getMaximum();
+//		} else {
+//			min = iv.getUserMinimum();
+//			max = iv.getUserMaximum();
+//		}
+		min = iv.getUserMinimum();
+		max = iv.getUserMaximum();
+//		t1 = System.nanoTime();
+//		System.out.println( "ICI: displayImage.begin.dt [msec]= " + ( t1 - t0 ) / 1000000 );
+		float[] imageValues = psf.applyPSF( iv, imageRect );
+//		t2 = System.nanoTime();
+//		System.out.println( "ICI: displayImage.applyPSF.dt [msec]= " + ( t2 - t1 ) / 1000000 );
+//		imageData = createImageData(imageValues, min, max, iv.getPalette());
+		imageData = createImageData2( imageValues, min, max, iv.getPalette() );
+//		t3 = System.nanoTime();
+//		System.out.println( "ICI: displayImage.createImageData.dt [msec]= " + ( t3 - t2 ) / 1000000 );
+		displayImage();
+	}
+
+	/**
+	 * Update the image display.
+	 */
+	public void displayImage() {
+		// Abort if there is no imageData prepared.
+		if( imageData == null ) {
+			return;
 		}
-		imageData = createImageData(min, max, iv.getPalette());
-		createScreenImage(imageData);
+//		long t0 = System.nanoTime(), t4, t5;
+		createScreenImage( imageData );
+//		t4 = System.nanoTime();
+//		System.out.println( "ICI: displayImage.createScreenImage.dt [msec]= " + ( t4 - t0 ) / 1000000 );
 		drawImage(true);
 		if (legendDraw) {
+			float min = iv.getUserMinimum();
+			float max = iv.getUserMaximum();
 			legendData = createLegendData(min, max, iv.getPalette());
 			createScreenLegend(legendData);
 			drawLegend(min, max);
 		}
 		imageChanged = false;
+//		t5 = System.nanoTime();
+//		System.out.println( "ICI: displayImage.drawImage.dt [msec]= " + ( t5 - t4 ) / 1000000 );
+//		System.out.println( "ICI: displayImage.dt [msec]= " + ( t5 - t0 ) / 1000000 );
+	}
+
+	public ImageData createImageData2(float[] imageValues,
+			final float _minimum, final float _maximum,
+            final PaletteData palette) {
+		// Check for zero length
+		int len = imageValues.length;
+		if (len == 0)
+			return null;
+		// Calculate the oriented rectangles
+		// TODO: Are these needed here?
+		calculateMainRectangles();
+		iv.resetCoordinates();
+
+		// Loop over pixels
+		float scale_8bit;
+		float maxPixel;
+		if (_maximum > _minimum) {
+			scale_8bit = 254f / (_maximum - _minimum);
+			maxPixel = _maximum - _minimum;
+		} else {
+			scale_8bit = 1f;
+			maxPixel = 254;
+		}
+		byte[] scaledImageAsByte = new byte[len];
+		float scaled_pixel;
+		byte pixel;
+		Point p1;
+		Point p2 = new Point(0, 0);
+		int index;
+		for (int i = 0; i < len; i++) {
+			if (imageValues[i] < 0) {
+				scaled_pixel = 0; // Reserved for not measured values (like -1)
+			} else {
+				if (imageValues[i] < _minimum) {
+					scaled_pixel = 0;
+				} else if (imageValues[i] >= _maximum) {
+					scaled_pixel = maxPixel;
+				} else {
+					scaled_pixel = imageValues[i] - _minimum;
+				}
+				scaled_pixel = scaled_pixel * scale_8bit + 1;
+			}
+			p2.x = i % imageRect.width;
+			p2.y = i / imageRect.width;
+			// Keep it in bounds
+			pixel = (byte) (0x000000FF & ((int) scaled_pixel));
+			p1 = imageToOriented(p2);
+			index = p1.y * orientedRect.width + p1.x;
+			scaledImageAsByte[index] = pixel;
+		}
+		ImageData imageData = new ImageData(orientedRect.width,
+				orientedRect.height, 8, palette, 1, scaledImageAsByte);
+		return imageData;
 	}
 
 	/**
@@ -1343,6 +1421,31 @@ public class ImageComponentImage implements IImagesVarKeys {
 	public ImageData createImageData(final float _minimum, 
 			                         final float _maximum,
 			                         final PaletteData palette) {
+		int kernel1D[] = {
+				7, 10, 15, 18, 20, 18, 15, 10,  7,
+				10, 16, 25, 35, 40, 35, 25, 16, 10,
+				15, 25, 45, 70, 80, 70, 45, 25, 15,
+				18, 35, 70, 85, 95, 85, 70, 35, 18,
+				20, 40, 80, 95, 99, 95, 80, 40, 20,
+				18, 35, 70, 85, 95, 85, 70, 35, 18,
+				15, 25, 45, 70, 80, 70, 45, 25, 15,
+				10, 16, 25, 35, 40, 35, 25, 16, 10,
+				7, 10, 15, 18, 20, 18, 15, 10,  7 };
+		int kernel2D[][] = {
+				{ 7, 10, 15, 18, 20, 18, 15, 10,  7 },
+				{ 10, 16, 25, 35, 40, 35, 25, 16, 10 },
+				{ 15, 25, 45, 70, 80, 70, 45, 25, 15 },
+				{ 18, 35, 70, 85, 95, 85, 70, 35, 18 },
+				{ 20, 40, 80, 95, 99, 95, 80, 40, 20 },
+				{ 18, 35, 70, 85, 95, 85, 70, 35, 18 },
+				{ 15, 25, 45, 70, 80, 70, 45, 25, 15 },
+				{ 10, 16, 25, 35, 40, 35, 25, 16, 10 },
+				{ 7, 10, 15, 18, 20, 18, 15, 10,  7 } };
+		int kernelJCenter;
+		int kernelKCenter;
+		int iXY;
+		float psfValue, valueJK;
+		long t0 = System.nanoTime();
 		// Check for zero length
 		float[] screenImageData;
 		if (!iv.isImageDiffOn()) {
@@ -1363,11 +1466,11 @@ public class ImageComponentImage implements IImagesVarKeys {
 		float scale_8bit;
 		float maxPixel;
 		if (_maximum > _minimum) {
-			scale_8bit = 255f / (_maximum - _minimum);
+			scale_8bit = 254f / (_maximum - _minimum);
 			maxPixel = _maximum - _minimum;
 		} else {
 			scale_8bit = 1f;
-			maxPixel = 0xFF;
+			maxPixel = 254;
 		}
 		byte[] scaledImageAsByte = new byte[len];
 		float scaled_pixel;
@@ -1375,32 +1478,217 @@ public class ImageComponentImage implements IImagesVarKeys {
 		Point p1;
 		Point p2 = new Point(0, 0);
 		int index;
-		for (int i = 0; i < len; i++) {
-			if (screenImageData[i] < _minimum) {
-				scaled_pixel = 0;
-			} else if (screenImageData[i] >= _maximum) {
-				scaled_pixel = maxPixel;
-			} else {
-				scaled_pixel = screenImageData[i] - _minimum;
+		boolean psfOn = false; //iv.isPSFOn();
+//		int[] intImageData = new int[screenImageData.length];
+//		for( int d = screenImageData.length - 1; d>=0; d-- )
+//			intImageData[d] = (int)screenImageData[d];
+		long t1 = System.nanoTime();
+		logger.debug( "createimagedata.begin.dt [msec]= " + ( t1 - t0 ) / 1000000 );
+//		int psfRunmax=2;
+//		float[] tmpScreenImageData=null;
+//		float[] newScreenImageData=screenImageData.clone();
+//		for (int psfRun=0;psfRun<psfRunmax;psfRun++) {
+//			tmpScreenImageData=screenImageData;
+//			screenImageData=newScreenImageData;
+//			newScreenImageData=tmpScreenImageData;
+			for (int i = 0; i < len; i++) {
+				if( screenImageData[i] < 0 ) {
+					scaled_pixel = 0; //Reserved for not measured values (like -1)
+				} else {
+					if (screenImageData[i] < _minimum) {
+						scaled_pixel = 0;
+					} else if (screenImageData[i] >= _maximum) {
+						scaled_pixel = maxPixel;
+					} else {
+						scaled_pixel = screenImageData[i] - _minimum;
+					}
+					scaled_pixel = scaled_pixel * scale_8bit + 1;
+				}
+				p2.x = i % imageRect.width;
+				p2.y = i / imageRect.width;
+				if( psfOn ) {
+//					int kernel[][] = {
+//							{  7, 10, 15, 18, 20, 18, 15, 10,  7 },
+//							{ 10, 16, 25, 35, 40, 35, 25, 16, 10 },
+//							{ 15, 25, 45, 70, 80, 70, 45, 25, 15 },
+//							{ 18, 35, 70, 85, 95, 85, 70, 35, 18 },
+//							{ 20, 40, 80, 95, 99, 95, 80, 40, 20 },
+//							{ 18, 35, 70, 85, 95, 85, 70, 35, 18 },
+//							{ 15, 25, 45, 70, 80, 70, 45, 25, 15 },
+//							{ 10, 16, 25, 35, 40, 35, 25, 16, 10 },
+//							{  7, 10, 15, 18, 20, 18, 15, 10,  7 } };
+//					int kernelJCenter = kernel.length / 2;
+//					int jMin = -kernelJCenter; //max(-p2.y, -kernelJCenter)
+//					if( jMin < -p2.y )
+//						jMin = -p2.y;
+//					int jMax = kernelJCenter + 1; //min(imageRect.height-p2.y, kernelJCenter + 1)
+//					if( jMax > imageRect.height - p2.y )
+//						jMax = imageRect.height - p2.y;
+//					int iY = i + jMin * imageRect.width;
+//					int kernelKCenter = kernel[kernelJCenter].length / 2;
+//					int kMin = -kernelKCenter; //max(-p2.x, -kernelKCenter)
+//					if( kMin < -p2.x )
+//						kMin = -p2.x;
+//					int kMax = kernelKCenter + 1; //min(imageRect.width-p2.x, kernelKCenter + 1)
+//					if( kMax > imageRect.width - p2.x )
+//						kMax = imageRect.width - p2.x;
+//					float psfValue = 0;
+//					float weight = 0;
+//					jMin += kernelJCenter;
+//					jMax += kernelJCenter;
+//					kMin += kernelKCenter;
+//					kMax += kernelKCenter;
+//					for( int j = jMin; j < jMax; iY += imageRect.width, j++ ) {
+//						int iX = iY + kMin - kernelKCenter;
+//						for( int k = kMin; k < kMax; k++ ) {
+//							float value = screenImageData[ iX++ ];
+//							//weight += kernel[j + kernelJCenter][k + kernelKCenter];
+//							//						psfValue += kernel[j + kernelJCenter][k + kernelKCenter] * ( ( value < _minimum ? 0 : ( value > _maximum ? maxPixel : value - _minimum ) ) * scale_8bit + 1 );
+//							//						psfValue += kernel[j + kernelJCenter][k + kernelKCenter] * value;
+//							float valueJK = kernel[j][k] * value;
+//							if( valueJK > psfValue )
+//								psfValue = valueJK;
+//						}
+//					}
+//					//				scaled_pixel = psfValue / weight;
+//					//				psfValue /= weight;
+//					psfValue /= 99; //middle kernel
+//					scaled_pixel = ( psfValue < _minimum ? 0 : ( psfValue > _maximum ? maxPixel : psfValue - _minimum ) ) * scale_8bit + 1;
+					kernelJCenter = 4;
+					kernelKCenter = 4;
+					psfValue = 0;
+					if( p2.x >= kernelKCenter && imageRect.width - p2.x > kernelKCenter
+						&& p2.y >= kernelJCenter && imageRect.height - p2.y > kernelJCenter ) {
+						int jMax = 2*kernelJCenter + 1;
+						iXY = i - kernelJCenter * imageRect.width - kernelKCenter;
+						int kMax = 2*kernelKCenter + 1;
+						int l = 0;
+						int dXY = imageRect.width - kMax;
+//						if( use1d ) {
+//						} else {
+							for( int j = 0; j < jMax; iXY += dXY, j++ ) {
+//								for( int k = 0; k < kMax; k++ ) {
+									valueJK = kernel2D[j][0] * screenImageData[ iXY++ ];
+									if( valueJK > psfValue )
+										psfValue = valueJK;
+									valueJK = kernel2D[j][1] * screenImageData[ iXY++ ];
+									if( valueJK > psfValue )
+										psfValue = valueJK;
+									valueJK = kernel2D[j][2] * screenImageData[ iXY++ ];
+									if( valueJK > psfValue )
+										psfValue = valueJK;
+									valueJK = kernel2D[j][3] * screenImageData[ iXY++ ];
+									if( valueJK > psfValue )
+										psfValue = valueJK;
+									valueJK = kernel2D[j][4] * screenImageData[ iXY++ ];
+									if( valueJK > psfValue )
+										psfValue = valueJK;
+									valueJK = kernel2D[j][5] * screenImageData[ iXY++ ];
+									if( valueJK > psfValue )
+										psfValue = valueJK;
+									valueJK = kernel2D[j][6] * screenImageData[ iXY++ ];
+									if( valueJK > psfValue )
+										psfValue = valueJK;
+									valueJK = kernel2D[j][7] * screenImageData[ iXY++ ];
+									if( valueJK > psfValue )
+										psfValue = valueJK;
+									valueJK = kernel2D[j][8] * screenImageData[ iXY++ ];
+									if( valueJK > psfValue )
+										psfValue = valueJK;
+
+//								}
+							}
+//						}
+						//				scaled_pixel = psfValue / weight;
+						//				psfValue /= weight;
+						psfValue /= 99; //middle kernel
+						scaled_pixel = ( psfValue < _minimum ? 0 : ( psfValue > _maximum ? maxPixel : psfValue - _minimum ) ) * scale_8bit + 1;
+					}
+				}
+//				if( psfOn ) {				
+//					int kernel[][] = {
+//							{  7, 10, 15, 18, 20, 18, 15, 10,  7 },
+//							{ 10, 16, 25, 35, 40, 35, 25, 16, 10 },
+//							{ 15, 25, 45, 70, 80, 70, 45, 25, 15 },
+//							{ 18, 35, 70, 85, 95, 85, 70, 35, 18 },
+//							{ 20, 40, 80, 95, 99, 95, 80, 40, 20 },
+//							{ 18, 35, 70, 85, 95, 85, 70, 35, 18 },
+//							{ 15, 25, 45, 70, 80, 70, 45, 25, 15 },
+//							{ 10, 16, 25, 35, 40, 35, 25, 16, 10 },
+//							{  7, 10, 15, 18, 20, 18, 15, 10,  7 } };
+//
+//					int kernelJCenter = kernel.length / 2;
+//					int jMin = -kernelJCenter; //max(-p2.y, -kernelJCenter)
+//					int jMax = jMin;
+//					int kernelKCenter = kernel[kernelJCenter].length / 2;
+//					int kMin = -kernelKCenter; //max(-p2.x, -kernelKCenter)
+//					int kMax = kMin;
+//					int iY=0;
+//					if (psfRun==0) {
+//						if( jMin < -p2.y )
+//							jMin = -p2.y;
+//						jMax = kernelJCenter + 1; //min(imageRect.height-p2.y, kernelJCenter + 1)
+//						if( jMax > imageRect.height - p2.y )
+//							jMax = imageRect.height - p2.y;
+//						iY = i + jMin * imageRect.width;
+//						kMin = 0;
+//						kMax = 1;
+//					} else {
+//						jMin = 0; //min(imageRect.height-p2.y, kernelJCenter + 1)
+//						jMax = 1; //min(imageRect.height-p2.y, kernelJCenter + 1)
+//						iY = i + jMin * imageRect.width;
+//						if( kMin < -p2.x )
+//							kMin = -p2.x;
+//						kMax = kernelJCenter + 1; //min(imageRect.width-p2.x, kernelKCenter + 1)
+//						if( kMax > imageRect.width - p2.x )
+//							kMax = imageRect.width - p2.x;
+//					}
+//					float psfValue = 0;
+//					float weight = 0;
+//					int orig_iY=iY;
+//					for( int j = jMin; j < jMax; iY += imageRect.width, j++ ) {
+//						int iX = iY + kMin;
+//						for( int k = kMin; k < kMax; k++ ) {						
+//							float value = screenImageData[ iX++ ];
+//							//weight += kernel[j + kernelJCenter][k + kernelKCenter];
+//							//						psfValue += kernel[j + kernelJCenter][k + kernelKCenter] * ( ( value < _minimum ? 0 : ( value > _maximum ? maxPixel : value - _minimum ) ) * scale_8bit + 1 );
+//							//						psfValue += kernel[j + kernelJCenter][k + kernelKCenter] * value;
+//							float valueJK = kernel[j + kernelJCenter][k + kernelKCenter] * value;
+//							if( valueJK > psfValue )
+//								psfValue = valueJK;
+//						}
+//					}
+//					//				scaled_pixel = psfValue / weight;
+//					//				psfValue /= weight;
+//					psfValue /= 99; //middle kernel
+//					newScreenImageData[ orig_iY ]=psfValue;
+//					scaled_pixel = ( psfValue < _minimum ? 0 : ( psfValue > _maximum ? maxPixel : psfValue - _minimum ) ) * scale_8bit + 1;
+//				}
+				// Keep it in bounds
+				pixel = (byte) (0x000000FF & ((int) scaled_pixel));
+				p1 = imageToOriented(p2);
+				index = p1.y * orientedRect.width + p1.x;
+				// if (false) {
+				// // If this is needed, we have a problem
+				// if (index >= len)
+				// index = len - 1;
+				// if (index < 0)
+				// index = 0;
+				// }
+				scaledImageAsByte[index] = pixel;
 			}
-			scaled_pixel = scaled_pixel * scale_8bit;
-			// Keep it in bounds
-			pixel = (byte) (0x000000FF & ((int) scaled_pixel));
-			p2.x = i % imageRect.width;
-			p2.y = i / imageRect.width;
-			p1 = imageToOriented(p2);
-			index = p1.y * orientedRect.width + p1.x;
-			// if (false) {
-			// // If this is needed, we have a problem
-			// if (index >= len)
-			// index = len - 1;
-			// if (index < 0)
-			// index = 0;
-			// }
-			scaledImageAsByte[index] = pixel;
-		}
+//		}
+		logger.debug("use1d=" + use1d);
+		use1d = !use1d;
+		
+		long t2 = System.nanoTime();
+		logger.debug( "floatarray2bytearray.dt [msec]= " + ( t2 - t1 ) / 1000000 );
+		
 		ImageData imageData = new ImageData(orientedRect.width,
 				orientedRect.height, 8, palette, 1, scaledImageAsByte);
+
+		long t3 = System.nanoTime();
+		logger.debug( "bytearray2imagedata.dt [msec]= " + ( t3 - t2 ) / 1000000 );
 		return imageData;
 	}
 
@@ -1412,20 +1700,19 @@ public class ImageComponentImage implements IImagesVarKeys {
 	 *            The ImageData.
 	 * @return The Image.
 	 */
-	public Image createScreenImage(ImageData data) {
+	public Image createScreenImage(ImageData data1) {
+		ImageDataUpscale data = new ImageDataUpscale( data1 );
 		if (image != null && !image.isDisposed()) {
 			image.dispose();
 			image = null;
 		}
 		// clearCanvas();
 		Rectangle bounds = imageCanvas.getBounds();
-	//	if (legendDraw)
+		if (legendDraw)
 			// use only 90% of width to leave space for plot of scale
-		//	bounds.width = (int)(bounds.width-45); 
-		
+			bounds.width = (int)(bounds.width-45); 
 		// determine how much each dimension needs to be scaled by
-		xScale = (double) orientedRect.width / (double) bounds.width; //problem
-		
+		xScale = (double) orientedRect.width / (double) bounds.width;
 		yScale = (double) orientedRect.height / (double) bounds.height;
 		// choose the largest to scale both dimensions by if preserve the image
 		// aspect ratio is selected
@@ -1454,7 +1741,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 			image = null;
 		} else {
 			image = new Image(Display.getCurrent(), data.scaledTo(xscaledTo,
-					yscaledTo));
+					yscaledTo).getImageData());
 		}
 		return image;
 	}
@@ -1473,7 +1760,6 @@ public class ImageComponentImage implements IImagesVarKeys {
 	private void drawImage(boolean doSelection) {
 		if (imageCanvasGC == null || image == null) return;
 		imageCanvasGC.drawImage(image, 0, 0);
-		
 		if (iv.isPeaksOn()) {
 			showPeaks();
 		}
@@ -1501,27 +1787,29 @@ public class ImageComponentImage implements IImagesVarKeys {
 	public ImageData createLegendData(final float _minimum, 
 			                         final float _maximum,
 			                         final PaletteData palette) {
- 
-	
+		// Check for zero length
+		float[] screenLegendData = new float[100];
+		float _scale = (_maximum-_minimum)/100.f;
+		for (int i=0; i<100; i++) {
+			screenLegendData[i] = _maximum-_minimum-_scale*(float)i;
+		}
+
+		// Loop over pixels
+		float scale_8bit;
+		if (_maximum > _minimum) {
+			scale_8bit = 255f / (_maximum - _minimum);
+		} else {
+			scale_8bit = 1f;
+		}
 		byte[] legendAsByte = new byte[100];
 		float scaled_pixel;
 		byte pixel;
-		float scaled=255;
 		for (int i = 0; i < 100; i++) {
-			
-			scaled_pixel=scaled;
-			scaled=scaled-2.56f;
-				
+			scaled_pixel = screenLegendData[i] * scale_8bit;
 			// Keep it in bounds
 			pixel = (byte) (0x000000FF & ((int) scaled_pixel));
-			
-			
 			legendAsByte[i] = pixel;
 		}
-
-		
-		
-
 		ImageData imageData = new ImageData(1, 100, 8, palette, 1, legendAsByte);
 		return imageData;
 	}	
@@ -1543,24 +1831,19 @@ public class ImageComponentImage implements IImagesVarKeys {
 		// use only 9% of width to leave space between image and legend
 //		bounds.width = (int)(bounds.width*.09); 
 //		bounds.height = (int)(bounds.height*.99); 
-		bounds.width = ImageComponentUI.getCanvaslegendsize(); 
+		bounds.width = 42; 
 		bounds.height = bounds.height-2; 
-
 		// determine how much each dimension needs to be scaled by
-	/*	xScale = (double) 1 / (double) bounds.width;
+		xScale = (double) 1 / (double) bounds.width;
 		yScale = (double) 100 / (double) bounds.height;
 		int xscaledTo = (int) ((double) 1 / xScale);
-		int yscaledTo = (int) ((double) 100 / yScale);*/
-		int xscaledTo=bounds.width;
-		int yscaledTo=bounds.height;
-
+		int yscaledTo = (int) ((double) 100 / yScale);
 		if (data == null) {
 			logger.debug("data is null !");
 			legend = null;
 		} else {
 			legend = new Image(Display.getCurrent(), data.scaledTo(xscaledTo,
 					yscaledTo));
-	
 		}
 		return legend;
 	}
@@ -1570,74 +1853,20 @@ public class ImageComponentImage implements IImagesVarKeys {
 	 */
 	private void drawLegend(float min, float max) {
 		if (imageCanvasGC == null || legend == null) return;
-		if (imageCanvasGC == null || legend == null) return;
 		Rectangle bounds = imageCanvas.getBounds();
 		// draw the legend offset 10% of the width and height of the legend area to leave some space
 		// between the legend and the image
-		// int legend_width = (int)((float)bounds.width*.905f);
-		//int legend_width = bounds.width-43;
-		int legend_height = 1;		
-
-		legendCanvasGC.drawImage(legend, 0, 0);		
+//		int legend_width = (int)((float)bounds.width*.905f);
+		int legend_width = bounds.width-43;
+		int legend_height = 1;
+		imageCanvasGC.drawImage(legend, legend_width, legend_height);
 		Font font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
-		legendCanvasGC.setFont(font);
-		legendCanvasGC.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
-		//legendCanvasGC.drawText(Integer.toString((int)max), 0, 0);
-		//legendCanvasGC.drawText(Integer.toString((int)min), 0, bounds.height-legend_height-20);
-
-	
-		String maxConvertInt ;
-		maxConvertInt=Integer.toString((int)max);
-		String maxformated = null;
-		NumberFormat formatter = new DecimalFormat();		
-		formatter=new DecimalFormat("0.##E0");
-		int maxLenghInt = maxConvertInt.length();
-		int maxLenghString;
-		maxLenghString=Float.toString((float)max).length();
-		maxformated=formatter.format(max);
-		int i=0;
-	
-		if (maxLenghInt<6){
-			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
-			legendCanvasGC.setFont(font);
-			legendCanvasGC.drawText(Integer.toString((int)max), 0, 0);			
-		}
-		else if (6<=maxLenghString){				
-			font = new Font(display,"Arial",11,SWT.BOLD | SWT.ITALIC); 
-			legendCanvasGC.setFont(font);
-			legendCanvasGC.drawText(maxformated, 0, 0);
-		}	
-		
-		String minConvertInt ;
-		minConvertInt=Integer.toString((int)min);
-		String minformated = null;
-		int minLenghInt = minConvertInt.length();
-		minformated=formatter.format(min);
-
-		
-		
-		
-		if (minLenghInt<6){
-			font = new Font(display,"Arial",14,SWT.BOLD | SWT.ITALIC); 
-			legendCanvasGC.setFont(font);
-			legendCanvasGC.drawText(Integer.toString((int)min), 0, bounds.height-legend_height-20);	
-			
-		}
-		else if (6<=minLenghInt){		
-		
-			font = new Font(display,"Arial",11,SWT.BOLD | SWT.ITALIC); 
-			legendCanvasGC.setFont(font);
-			legendCanvasGC.drawText(minformated, 0, bounds.height-legend_height-20);
-		
-		}
-		
+		imageCanvasGC.setFont(font);
+		imageCanvasGC.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
+		imageCanvasGC.drawText(Integer.toString((int)max), legend_width, legend_height);
+		imageCanvasGC.drawText(Integer.toString((int)min), legend_width, bounds.height-legend_height-20);
 		font.dispose();
 	}
-	
-	
-	
-	
-	
 	/**
 	 * Creates a drop target on the imageCanvas. TextTransfers and FileTransfers
 	 * are allowed. Only the first fileName in an array is used.
@@ -2124,10 +2353,6 @@ public class ImageComponentImage implements IImagesVarKeys {
 	 */
 	public Image getImage() {
 		return image;
-	}
-	
-	public Image getImageLegend() {
-		return legend;
 	}
 
 	public boolean isDisposed() {

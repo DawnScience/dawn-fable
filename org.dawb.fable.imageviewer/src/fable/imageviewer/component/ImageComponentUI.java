@@ -25,12 +25,11 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -44,7 +43,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IActionBars;
-import org.eclipse.ui.PlatformUI;
 
 import fable.framework.logging.FableLogger;
 import fable.framework.toolbox.CheckableActionGroup;
@@ -58,7 +56,12 @@ import fable.imageviewer.internal.CustomCoordinatesDialog;
 import fable.imageviewer.internal.IImagesVarKeys;
 import fable.imageviewer.internal.ZoomSelection;
 import fable.imageviewer.preferences.PreferenceConstants;
+import fable.imageviewer.psf.ExecutableManager;
+import fable.imageviewer.psf.LogScale;
+import fable.imageviewer.psf.Statistics;
+import fable.imageviewer.psf.TrackableRunnable;
 import fable.imageviewer.rcp.Activator;
+import fable.imageviewer.psf.ConverterUtils;
 
 /**
  * This class manages the SWT controls for the ImageView. It holds the
@@ -66,6 +69,12 @@ import fable.imageviewer.rcp.Activator;
  * done in the ImageViewImage class.
  */
 public class ImageComponentUI implements IImagesVarKeys {
+	/**
+	 * A text to adjust 7 sized width of GUI displaying value.
+	 */
+	final String GUIValue7WidthSetter = "0000000";
+	final int logScaleMin = 0;
+	final int logScaleMax = 31;
 	/**
 	 * Flag to add extra actions to the context menu for debugging.
 	 */
@@ -90,22 +99,31 @@ public class ImageComponentUI implements IImagesVarKeys {
 	/**
 	 * Indicates when the legend is visible.
 	 */
-	private boolean legendShowing=false;
+	private boolean legendShowing = false;
 	/**
 	 * The Display for this view.
 	 */
 	private Display display;
 	private MenuAction coordCombo, orientCombo, lutCombo;
-	private Action aspectButton,peaksButton,autoscaleButton;
+	private Action aspectButton,peaksButton,autoscaleButton, psfButton;
 	
-	private CCombo peakMarkerSizeText = null;
-	private Text userMinimumText = null;
-	private Text userMaximumText = null;
+	private Text minValueText = null;
+	private LogScale userMinimumScale = null;
+	private Text userMinimumText2 = null;
+	private Text suggestedMinimumText = null;
+	private Text maxValueText = null;
+	private LogScale userMaximumScale = null;
+	private Text userMaximumText2 = null;
+	private Text suggestedMaximumText = null;
 	private Text fileNumberText = null;
 	private Text statusLabel = null;
+	private CCombo peakMarkerSizeText = null;
 	private CLabel titleLabel;
 	private Canvas imageCanvas;
 	private Composite statusGroup;
+
+	ExecutableManager imageDisplayTracker = null;
+
 	static private NumberFormat decimalFormat = NumberFormat
 			.getNumberInstance();
 	/**
@@ -121,8 +139,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 	 * @param imageView
 	 */
 	public ImageComponentUI(ImageComponent imageView) {
-		this.iv = imageView;		
-		
+		this.iv = imageView;
 	}
 	
 	public String toString() {
@@ -131,13 +148,6 @@ public class ImageComponentUI implements IImagesVarKeys {
 	
 	private boolean off = false;
 	private Composite titleComponent;
-	private Composite legendComposite;
-	private Canvas canvaslegend;
-	private static int canvaslegendsize;
-
-
-	public static  GC legendCanvasGC;
-	
 
 	/**
 	 * Creates all the controls.
@@ -145,8 +155,6 @@ public class ImageComponentUI implements IImagesVarKeys {
 	 * @param parent
 	 */
 	public void createControls(Composite parent) {
-		
-		
 		
 		if (iv == null) return;
 		
@@ -199,44 +207,10 @@ public class ImageComponentUI implements IImagesVarKeys {
 		createImageControlSwitches(iv.getActionBars());
 		createImageControlMenus(iv.getActionBars());
        
-		/*composite principal*/
-		GridLayout grid3Cols = new GridLayout();
-		grid3Cols.numColumns = 2;
-		grid3Cols.horizontalSpacing=200;
-		grid3Cols.marginWidth=200;
-		grid3Cols.verticalSpacing=200;
-		Composite legendImageComposite = new Composite(parent, SWT.NULL);
-		legendImageComposite.setLayout(grid3Cols);
-		legendImageComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.FILL_VERTICAL));
-		GridUtils.removeMargins(legendImageComposite);
-
-		
-		GridLayout grid4Cols = new GridLayout();
-
-		
-		legendComposite = new Composite(legendImageComposite, SWT.NULL);
-		legendComposite.setLayout(grid4Cols);
-		legendComposite.setLayoutData(new GridData(SWT.NONE, SWT.FILL, false, true, 1, 1));
-		
-		
-		GridUtils.removeMargins(legendComposite);
-		GridUtils.setVisible(legendComposite, true);
-		this.image.setLegendOn(false);
-			
-		canvaslegend=new Canvas(legendComposite,SWT.NONE);
-		canvaslegend.setBackground(display.getSystemColor(SWT.COLOR_RED));
-		GridData gridDataLegend = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
-		canvaslegendsize=58;
-		gridDataLegend.widthHint = canvaslegendsize;	
-		canvaslegend.setLayoutData(gridDataLegend);
-		canvaslegend.layout();
-		
-        GridUtils.setVisible(legendComposite, false);
-		
 		GridLayout grid2Cols = new GridLayout();
 		// KE: Why 2 cols ?
 		// grid2Cols.numColumns = 2;
-		Composite canvasComposite = new Composite(legendImageComposite, SWT.NULL);
+		Composite canvasComposite = new Composite(parent, SWT.NULL);
 		canvasComposite.setLayout(grid2Cols);
 		canvasComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.FILL_VERTICAL));
 		GridUtils.removeMargins(canvasComposite);
@@ -246,7 +220,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 		imageCanvas = new Canvas(canvasComposite, SWT.NONE);
 		// Initialize the ImageViewImage here
 		image.initializeCanvas();
-		
+
 		/* bottom line containing status and load image controls */
 		createImageControlUI(parent);
 
@@ -258,11 +232,6 @@ public class ImageComponentUI implements IImagesVarKeys {
 		
 	}
 	
-	
-	public Canvas getCanvaslegend() {
-		return canvaslegend;
-	}
-
 	public void setTitle(final String title) {
 		if (titleLabel.isDisposed()) return;
 		if (title==null) {
@@ -271,7 +240,6 @@ public class ImageComponentUI implements IImagesVarKeys {
 			titleLabel.setText(title);
 			GridUtils.setVisible(titleComponent, true);
 		}
-
 		titleComponent.getParent().layout(new Control[]{titleComponent});
 	}
 	
@@ -280,12 +248,13 @@ public class ImageComponentUI implements IImagesVarKeys {
 		if (orientCombo!=null) orientCombo.dispose();
 		
 		if (peakMarkerSizeText!=null) peakMarkerSizeText.dispose();
-		if (userMinimumText!=null) userMinimumText.dispose();
-		if (userMaximumText!=null) userMaximumText.dispose();
+		if (userMinimumText2!=null) userMinimumText2.dispose();
+		if (userMaximumText2!=null) userMaximumText2.dispose();
 		if (fileNumberText!=null) fileNumberText.dispose();
 		if (statusLabel!=null) statusLabel.dispose();
 		if (imageCanvas!=null) imageCanvas.dispose();
 		if (statusGroup!=null) statusGroup.dispose();
+		//TODO dispose recently added components
 	}
 
 	private void createZoomActions(IActionBars iActionBars) {
@@ -304,67 +273,89 @@ public class ImageComponentUI implements IImagesVarKeys {
 	}
 
 	private void createImageControlUI(Composite parent) {
+		final boolean isAutoScale = Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.P_AUTOSCALE);
 
 		controlComposite = new Composite(parent, SWT.NONE);
+		controlComposite.setLayout(new GridLayout(10, false));
 		controlComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		controlComposite.setLayout(new GridLayout(7,false));
 		GridUtils.removeMargins(controlComposite);
-		
+
 		// Minimum
-		Label label = new Label(controlComposite, SWT.NULL);
-		label.setText("Min Intensity ");
+		Label label = new Label(controlComposite, SWT.NONE); //Column 1
+		label.setText("Min Value=");
+		label.setToolTipText("The minimum value found in image");
+		minValueText = new Text(controlComposite, SWT.RIGHT); //Column 2
+		minValueText.setText(GUIValue7WidthSetter);
+		minValueText.setEditable(false);
+		minValueText.setToolTipText(label.getToolTipText());
+
+		// Minimum
+		label = new Label(controlComposite, SWT.NONE); //Column 3
+		label.setText("Min Intensity:");
 		label.setToolTipText("The minimum intensity used by the palette");
-		
-		final GridData data = new GridData(SWT.FILL, SWT.CENTER, false, false);
-		data.widthHint = 60;
+		userMinimumScale = new LogScale(controlComposite, SWT.NONE); //Column 4
+		userMinimumScale.setMinimum(logScaleMin);
+		userMinimumScale.setMaximum(logScaleMax);
+		userMinimumScale.setToolTipText("The currently set minimum intensity used by the palette");
+		userMinimumScale.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if( userMinimumScale == null || userMinimumScale.isDisposed()) return;
+				final float v = (float)userMinimumScale.getLogicalSelection();
+				updateIntensityMin2(v);
+//				updateIntensityMinByScale();
+			}
 
-		userMinimumText = new Text(controlComposite, SWT.BORDER | SWT.RIGHT);
-		userMinimumText.setText("0");
-		userMinimumText.setLayoutData(data);
-		userMinimumText.setToolTipText("The minimum intensity used by the palette");
-		userMinimumText.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-		userMinimumText.addListener(SWT.Modify, new Listener() {
-			public void handleEvent(Event event) {
-				if (userMinimumText==null||userMinimumText.isDisposed()) return;
-				if (!userMinimumText.isEnabled() || off) return;
-				updateIntensity();
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
-		
-		final boolean isAutoScale = Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.P_AUTOSCALE);
-		userMinimumText.setEnabled(!isAutoScale);
+		label = new Label(controlComposite, SWT.NONE); //Column 5
+		label.setText("Current=");
+		label.setToolTipText(userMinimumScale.getToolTipText());
 
-		// Maximum
-		label = new Label(controlComposite, SWT.BORDER | SWT.RIGHT);
-		label.setText("  Max Intensity ");
-		label.setToolTipText("The maximum intensity used by the palette");
-		userMaximumText = new Text(controlComposite, SWT.BORDER | SWT.RIGHT);
-		userMaximumText.setLayoutData(data);
-		userMaximumText.setToolTipText("The maximum intensity used by the palette");
-		userMaximumText.setText("0");
-		userMaximumText.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-		userMaximumText.addListener(SWT.Modify, new Listener() {
-			public void handleEvent(Event event) {
-				if (userMaximumText==null||userMaximumText.isDisposed()) return;
-				if (!userMaximumText.isEnabled() || off) return;
-				updateIntensity();
+
+		userMinimumText2 = new Text(controlComposite, SWT.BORDER | SWT.RIGHT); //Column 6
+		userMinimumText2.setText(GUIValue7WidthSetter);
+//		userMinimumText2.setLayoutData(data);
+		userMinimumText2.setToolTipText(userMinimumScale.getToolTipText());
+		userMinimumText2.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+		userMinimumText2.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				if( userMinimumText2 == null || userMinimumText2.isDisposed()) return;
+				if( !userMinimumText2.isEnabled() || userMinimumText2.getText().isEmpty() ) return;
+				try {
+					updateIntensityMin2(decimalFormat.parse(userMinimumText2.getText()).floatValue());
+				} catch (ParseException ex) {
+					FableLogger.warn("Unable to parse minimum value: "+ userMinimumText2.getText());
+				}
 			}
 		});
-		userMaximumText.setEnabled(!isAutoScale);
-		
+		userMinimumText2.setEnabled(!isAutoScale);
+		label = new Label(controlComposite, SWT.NONE); //Column 7
+		label.setText("Suggested=");
+		label.setToolTipText("The suggested minimum intensity used by the palette");
+		suggestedMinimumText = new Text(controlComposite, SWT.RIGHT); //Column 8
+		suggestedMinimumText.setText(GUIValue7WidthSetter);
+		suggestedMinimumText.setEditable(false);
+		suggestedMinimumText.setToolTipText(label.getToolTipText());
+
 		// Peak marker size
-		label = new Label(controlComposite, SWT.NULL);
-		label.setText("  Marker Size ");
+		label = new Label(controlComposite, SWT.NONE); //Column 9
+		label.setText("Marker Size:");
 		label.setToolTipText("Set the size of the markers used to mark "
 				+ "peaks (must be odd)");
 
-		peakMarkerSizeText = new CCombo(controlComposite, SWT.RIGHT|SWT.BORDER|SWT.READ_ONLY);
+		peakMarkerSizeText = new CCombo(controlComposite, SWT.RIGHT|SWT.BORDER|SWT.READ_ONLY); //Column 10
 		peakMarkerSizeText.setItems(new String[]{"1","3","5","7","9"});
 		peakMarkerSizeText.setText(Integer.toString(iv.getPeakMarkerSize()));
 		peakMarkerSizeText.setToolTipText("Set the size of the markers used to mark peaks (must be odd)");
 		peakMarkerSizeText.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
 		
-		peakMarkerSizeText.setLayoutData(data);
+//		final GridData data = new GridData(SWT.FILL, SWT.CENTER, false, false);
+//		data.widthHint = 60;
+//		peakMarkerSizeText.setLayoutData(data);
 		//peakMarkerSizeText.setOrientation(SWT.RIGHT);
 		
 		peakMarkerSizeText.addListener(SWT.Modify, new Listener() {
@@ -373,6 +364,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 				if (!peakMarkerSizeText.isEnabled() || off) return;
 				try {
 					off = true;
+//					controlComposite.pack();
 					final String value = peakMarkerSizeText.getText();
 					int val = Integer.parseInt(value);
 					if (val <= 0) {
@@ -400,21 +392,127 @@ public class ImageComponentUI implements IImagesVarKeys {
 				} finally {
 					off = false;
 				}
-				image.displayImage();
+				image.displayImage(); // TODO Should it call initAndDisplayImage() instead? Probably no
+			}
+		});
+
+		// Maximum
+		label = new Label(controlComposite, SWT.NONE); //Column 1
+		label.setText("Max Value=");
+		label.setToolTipText("The maximum intensity used by the palette");
+		maxValueText = new Text(controlComposite, SWT.RIGHT); //Column 2
+		maxValueText.setText(GUIValue7WidthSetter);
+		maxValueText.setEditable(false);
+		maxValueText.setToolTipText(label.getToolTipText());
+
+		// Maximum
+		label = new Label(controlComposite, SWT.NONE); //Column 3
+		label.setText("Max Intensity:");
+		label.setToolTipText("The maximum intensity used by the palette");
+		userMaximumScale = new LogScale(controlComposite, SWT.NONE); //Column 4
+		userMaximumScale.setMinimum(logScaleMin);
+		userMaximumScale.setMaximum(logScaleMax);
+		userMaximumScale.setToolTipText("The currently set maximum intensity used by the palette");
+		label = new Label(controlComposite, SWT.NONE); //Column 5
+		label.setText("Current=");
+		label.setToolTipText(userMaximumScale.getToolTipText());
+		userMaximumScale.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if( userMaximumScale == null || userMaximumScale.isDisposed()) return;
+				final float v = (float)userMaximumScale.getLogicalSelection();
+				updateIntensityMax2(v);
+//				updateIntensityMinByScale();
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+
+		userMaximumText2 = new Text(controlComposite, SWT.BORDER | SWT.RIGHT); //Column 6
+		//userMaximumText2.setLayoutData(data);
+		userMaximumText2.setToolTipText(userMaximumScale.getToolTipText());
+		userMaximumText2.setText(GUIValue7WidthSetter);
+		userMaximumText2.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+		userMaximumText2.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				if( userMaximumText2 == null || userMaximumText2.isDisposed()) return;
+				if( !userMaximumText2.isEnabled() || userMaximumText2.getText().isEmpty() ) return;
+				try {
+					updateIntensityMax2(decimalFormat.parse(userMaximumText2.getText()).floatValue());
+				} catch (ParseException ex) {
+					FableLogger.warn("Unable to parse maximum value: "+ userMaximumText2.getText());
+				}
+			}
+			;
+		});
+//		userMaximumText2.addListener(SWT.Modify, new Listener() {
+//			public void handleEvent(Event event) {
+//				if (userMaximumText2==null||userMaximumText2.isDisposed()) return;
+//				if (!userMaximumText2.isEnabled() || off) return;
+//				controlComposite.pack();
+//				updateIntensity();
+//			}
+//		});
+		userMaximumText2.setEnabled(!isAutoScale);
+		label = new Label(controlComposite, SWT.NONE); //Column 7
+		label.setText("Suggested=");
+		label.setToolTipText("The suggested maximum intensity used by the palette");
+		suggestedMaximumText = new Text(controlComposite, SWT.RIGHT); //Column 8
+		suggestedMaximumText.setText(GUIValue7WidthSetter);
+		suggestedMaximumText.setEditable(false);
+		suggestedMaximumText.setToolTipText(label.getToolTipText());
+
+	}
+	
+	public synchronized void trackedInitAndDisplayImage() {
+		imageDisplayTracker = ExecutableManager.addRequest(new TrackableRunnable(imageDisplayTracker) {
+			public void runThis() {
+				if( image != null ) {
+					image.initAndDisplayImage();
+				}
 			}
 		});
 	}
 	
-	private void updateIntensity() {
-		
-		PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				resetAutoscale(false);
-				image.displayImage();
-			}
-		});
+	private void updateIntensityMin2(final float v) {
+		if( !iv.setUserMinimum(v) ) //earlier: resetAutoscale(false);
+			return;
+		trackedInitAndDisplayImage();
 	}
-	
+
+//	private void updateIntensityMinByScale() {
+//		final float v = (float)userMinimumScale.getLogicalSelection();
+//		updateIntensityMin2(v);
+//	}
+//	
+//	private void updateIntensityMinByText() {
+//		try {
+//			final float v = decimalFormat.parse(userMinimumText2.getText()).floatValue();
+//			updateIntensityMin2(v);
+//		} catch (ParseException ex) {
+//			FableLogger.warn("Unable to parse minimum value: "+ userMinimumText2.getText());
+//		}
+//	}
+	private void updateIntensityMax2(final float v) {
+		if( !iv.setUserMaximum(v) ) //earlier: resetAutoscale(false);
+			return;
+		trackedInitAndDisplayImage();
+	}
+
+//	private void updateIntensityMax() {
+//		try {
+//			final float v = decimalFormat.parse(userMaximumText2.getText()).floatValue();
+//			if( iv.getUserMaximum() == v )
+//				return;
+//			trackedInitAndDisplayImage();
+//		} catch (ParseException ex) {
+//			FableLogger.warn("Unable to parse minimum value: "+ userMaximumText2.getText());
+//		}
+//	}
+//	
 	private void createImageControlSwitches(final IActionBars iActionBars) {
 		
 		final IContributionManager man = iActionBars.getToolBarManager();
@@ -426,8 +524,8 @@ public class ImageComponentUI implements IImagesVarKeys {
 		// Row 2
 		autoscaleButton = new Action("Autoscale Intensity", IAction.AS_CHECK_BOX ) {
 			public void run() {
-				resetAutoscale(true);
-				image.displayImage();
+				setAutoscaleByMinMaxValue(); //earlier: resetAutoscale(true);
+				trackedInitAndDisplayImage();
 			}
 		};
 		man.add(autoscaleButton);
@@ -466,6 +564,19 @@ public class ImageComponentUI implements IImagesVarKeys {
 		peaksButton.setChecked(iv.isPeaksOn());
 		peaksButton.setImageDescriptor(Activator.getImageDescriptor("/icons/chart_curve_go.png"));
 
+		psfButton = new Action("Apply PSF", IAction.AS_CHECK_BOX ) {
+			public void run() {
+				setPSF();
+				trackedInitAndDisplayImage();
+			}
+		};
+		man.add(psfButton);
+		psfButton.setText("Apply PSF");
+		psfButton.setToolTipText("Apply PointSpreadFunction (PSF) on the image");
+		psfButton.setChecked(Activator.getDefault().getPreferenceStore().getBoolean(PreferenceConstants.P_PSF));
+		psfButton.setImageDescriptor(Activator.getImageDescriptor("/icons/psf.png"));
+		if( psfButton.isChecked() )
+			psfButton.run();
 	}
 
 	private void createImageControlMenus(final IActionBars iActionBars) {
@@ -644,47 +755,84 @@ public class ImageComponentUI implements IImagesVarKeys {
 
 
 	/**
+	 * Changes the min value of autoscale.
+	 * Does not cause the image to be redrawn.
+	 */
+//	protected void setScalingByMinValue( float v ) {
+		// Get all the current values from the controls
+//		iv.setUserMinimum2(v);
+//	}
+
+	/**
+	 * Changes the max value of autoscale.
+	 * Does not cause the image to be redrawn.
+	 */
+//	protected void setScalingByMaxValue( float v, final boolean requireTextUpdate ) {
+//		final boolean isAutoScale = autoscaleButton.isChecked();
+//		Activator.getDefault().getPreferenceStore().setValue(PreferenceConstants.P_AUTOSCALE, isAutoScale);
+//		
+//		// Get all the current values from the controls
+//		userMaximumText2.setEnabled(true);
+//		iv.setUserMaximum2(v, requireTextUpdate);
+//		if (isAutoScale) {
+//			// Auto scale is selected
+//			userMaximumText2.setEnabled(false);
+//		} else {
+//			// Auto scale is not selected
+//			userMaximumText2.setEnabled(true);
+//		}
+//	}
+
+	/**
 	 * Does the logic for changing any of the autoscale parameters. Does not
 	 * cause the image to be redrawn.
 	 */
-	public void resetAutoscale(final boolean requireTextUpdate) {
-		
+	public void setAutoscaleByMinMaxValue() {
 		final boolean isAutoScale = autoscaleButton.isChecked();
 		Activator.getDefault().getPreferenceStore().setValue(PreferenceConstants.P_AUTOSCALE, isAutoScale);
+		userMinimumText2.setEnabled(true);
+		userMaximumText2.setEnabled(true);
 		
-		// Get all the current values from the controls
-		userMinimumText.setEnabled(true);
-		userMaximumText.setEnabled(true);
 		try {
-			iv.setUserMinimum(decimalFormat.parse(userMinimumText.getText()).floatValue(), requireTextUpdate);
+			iv.setUserMinimum(decimalFormat.parse(suggestedMinimumText.getText()).floatValue());
+//			setScalingByMinValue( decimalFormat.parse(minValueText.getText()).floatValue() );
 		} catch (ParseException ex) {
 			// KE: This can cause error storms
 			// FableUtils.excNoTraceMsg(this,
 			// "resetAutoscale: Unable to parse minimum value",
 			// ex);
-			FableLogger.warn("Unable to parse maximum value: "
-					+ userMinimumText.getText());
+			FableLogger.warn("Unable to parse minimum value: "+ suggestedMinimumText.getText());
 		}
 		try {
-			iv.setUserMaximum(decimalFormat.parse(userMaximumText.getText()).floatValue(), requireTextUpdate);
+			iv.setUserMaximum(decimalFormat.parse(suggestedMaximumText.getText()).floatValue());
 		} catch (ParseException ex) {
 			// KE: This can cause error storms
 			// FableUtils.excNoTraceMsg(this,
-			// "resetAutoscale: Unable to parse maximum value",
+			// "resetAutoscale: Unable to parse minimum value",
 			// ex);
-			FableLogger.warn("Unable to parse maximum value: "
-					+ userMaximumText.getText());
+			FableLogger.warn("Unable to parse maximum value: "+ suggestedMaximumText.getText());
 		}
+		userMinimumText2.setEnabled(!isAutoScale);
+		userMaximumText2.setEnabled(!isAutoScale);
+	}
+
+//	public void setAutoscaleByUserMinValue(float v) {
+//		setScalingByMinValue( v );
+//	}
+
+//	public void setAutoscaleByUserMaxValue(float v) {
+//		setScalingByMaxValue( v, false );
+//	}
+
+	/**
+	 * Does the logic for switching PSF on and off. Does not
+	 * cause the image to be redrawn.
+	 */
+	public void setPSF() {
 		
-		if (isAutoScale) {
-			// Auto scale is selected
-			userMinimumText.setEnabled(false);
-			userMaximumText.setEnabled(false);
-		} else {
-			// Auto scale is not selected
-			userMinimumText.setEnabled(true);
-			userMaximumText.setEnabled(true);
-		}
+		final boolean isPSFOn = psfButton.isChecked();
+		Activator.getDefault().getPreferenceStore().setValue(PreferenceConstants.P_PSF, isPSFOn);
+		iv.setPSFOn( isPSFOn );
 	}
 
 	/**
@@ -833,16 +981,33 @@ public class ImageComponentUI implements IImagesVarKeys {
 	}
 
 	/**
-	 * Sets minimumText and maximumText to the given values. If the input is
-	 * Statistics in the form float[] {min, max, mean}, the mean is ignored.
+	 * Sets minimumText and maximumText to the given values.
+	 * Only the minimum and maximum values are considered.
 	 * Does not cause the image to be redisplayed.
 	 * 
 	 * @param minmax
 	 *            The new values as float[] {min, max}.
 	 */
-	public void setMinMaxText(float[] minmax) {
-		setUserMinimumText(Float.toString(minmax[0]));
-		setUserMaximumText(Float.toString(minmax[1]));
+	public void setMinMaxValueText2(Statistics statistics) {
+		final double min = statistics.getMinimum();
+		final double max = statistics.getMaximum();
+		final double suggestedMin = statistics.getSuggestedMinimum();
+		final double suggestedMax = statistics.getSuggestedMaximum();
+//		setUserMinimumText(Float.toString(statistics.getMinimum()));
+//		setUserMaximumText(Float.toString(statistics.getMaximum()));
+		setMinValueText(ConverterUtils.doubleToString(min));
+		setMaxValueText(ConverterUtils.doubleToString(max));
+		//Bugfix: setting userMin&Max through iv, so the values affects the image7, NG: 13.12.2011
+//		iv.setUserMinimum(statistics.getMinimum(), true);
+//		iv.setUserMaximum(statistics.getMaximum(), true);
+		userMinimumScale.setLogicalMinMax(min, max);
+		userMaximumScale.setLogicalMinMax(min, max);
+		setSuggestedMinimumText(ConverterUtils.doubleToString(suggestedMin));
+		setSuggestedMaximumText(ConverterUtils.doubleToString(suggestedMax));
+		if( iv.getUserMinimum().isNaN() )
+			iv.setUserMinimum((float)suggestedMin);
+		if( iv.getUserMaximum().isNaN() )
+			iv.setUserMaximum((float)suggestedMax);
 	}
 
 	/**
@@ -850,12 +1015,12 @@ public class ImageComponentUI implements IImagesVarKeys {
 	 * 
 	 * @return The current values of minimumText and maximumText.
 	 */
-	public float[] getMinMaxText() {
+	public float[] getMinMaxText2() {
 		float[] vals = new float[2];
 		try {
-			vals[0] = decimalFormat.parse(userMinimumText.getText())
+			vals[0] = decimalFormat.parse(userMinimumText2.getText())
 					.floatValue();
-			vals[1] = decimalFormat.parse(userMaximumText.getText())
+			vals[1] = decimalFormat.parse(userMaximumText2.getText())
 					.floatValue();
 		} catch (ParseException ex) {
 			FableUtils.excNoTraceMsg(this,
@@ -926,11 +1091,8 @@ public class ImageComponentUI implements IImagesVarKeys {
 	 *            the legendShowing to set
 	 */
 	public void setLegendShowing(boolean legendShowing) {
-		
 		this.legendShowing = legendShowing;
 		this.image.setLegendOn(legendShowing);
-		GridUtils.setVisible(legendComposite, legendShowing);
-		legendComposite.getParent().layout(new Control[]{legendComposite});
 	}
 	public void setFocus() {
 		// TODO Auto-generated method stub
@@ -965,41 +1127,73 @@ public class ImageComponentUI implements IImagesVarKeys {
 		if (peaksButton!=null) this.peaksButton.setChecked(peaksOn);
 	}
 
-	public void setUserMinimumText(String text) {
-		if (userMinimumText!=null&&!userMinimumText.isDisposed()) {
-			try {
-				off = true;
-				userMinimumText.setText(text);
-			} finally {
-				off = false;
-			}
-		}
+	public void setPSF(boolean psfOn) {
+		if (psfButton!=null) this.psfButton.setChecked(psfOn);
 	}
-	public void setUserMaximumText(String text) {
-		if (userMaximumText!=null&&!userMaximumText.isDisposed()) {
-			try {
-				off = true;
-				userMaximumText.setText(text);
-			} finally {
-				off = false;
-			}
+
+	public void setUserMinimumText(float v) {
+		try {
+		if (userMinimumText2 == null || userMinimumText2.isDisposed()
+			|| v == decimalFormat.parse(userMinimumText2.getText()).floatValue() )
+			return;
+		} catch (ParseException ex) {
 		}
+		userMinimumText2.setText(ConverterUtils.floatToString(v));
+	}
+
+	public void setUserMaximumText(float v) {
+		try {
+			if (userMaximumText2 == null || userMaximumText2.isDisposed()
+				|| v == decimalFormat.parse(userMaximumText2.getText()).floatValue() )
+				return;
+		} catch (ParseException ex) {
+		}
+		userMaximumText2.setText(ConverterUtils.floatToString(v));
+	}
+
+	public void setUserMinimumScale(float v) {
+		if( userMinimumScale == null || userMinimumScale.isDisposed() )
+			return;
+		userMinimumScale.setLogicalSelection(v);
+	}
+
+	public void setUserMaximumScale(float v) {
+		if (userMaximumScale == null || userMaximumScale.isDisposed() )
+			return;
+		userMaximumScale.setLogicalSelection(v);
 	}
 
 	public void setStatusLabel(Text statusLabel) {
+		if( this.statusLabel != null && this.statusLabel.getText().equals( statusLabel ))
+			return;
 		this.statusLabel = statusLabel;
 	}
 
-	public static int getCanvaslegendsize() {
-		return canvaslegendsize;
+	public void setMinValueText(String text) {
+		if (minValueText !=null && !minValueText.isDisposed()
+				&& !minValueText.getText().equals( text )) {
+			minValueText.setText(text);
+		}
 	}
 
-	public static void setCanvaslegendsize(int canvaslegendsize) {
-		ImageComponentUI.canvaslegendsize = canvaslegendsize;
+	public void setMaxValueText(String text) {
+		if (maxValueText !=null && !maxValueText.isDisposed()
+				&& !maxValueText.getText().equals( text )) {
+			maxValueText.setText(text);
+		}
 	}
 
-	
-	
-		
-	
+	public void setSuggestedMinimumText(String text) {
+		if (suggestedMinimumText !=null && !suggestedMinimumText.isDisposed()
+				&& !suggestedMinimumText.getText().equals( text )) {
+			suggestedMinimumText.setText(text);
+		}
+	}
+
+	public void setSuggestedMaximumText(String text) {
+		if (suggestedMaximumText !=null && !suggestedMaximumText.isDisposed()
+				&& !suggestedMaximumText.getText().equals( text )) {
+			suggestedMaximumText.setText(text);
+		}
+	}
 }

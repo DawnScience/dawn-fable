@@ -18,6 +18,7 @@ import org.eclipse.ui.IViewActionDelegate;
 
 import fable.framework.toolbox.SWTUtils;
 import fable.imageviewer.model.ImageModel;
+import fable.imageviewer.psf.Statistics;
 
 /**
  * Action to display image info.
@@ -91,26 +92,26 @@ public class ImageInfoAction extends AbstractImageComponentAction implements IVi
 		info += "\n";
 		info += "width = " + imageModel.getWidth() + "\n";
 		info += "height = " + imageModel.getHeight() + "\n";
-		float[] statistics = imageModel.getStatistics();
+		Statistics statistics = imageModel.getStatistics();
 		info += "\n";
-		info += "min = " + statistics[0] + "\n";
-		info += "max = " + statistics[1] + "\n";
-		info += "mean = " + statistics[2] + "\n";
+		info += "min = " + statistics.getMinimum() + "\n";
+		info += "max = " + statistics.getMaximum() + "\n";
+		info += "mean = " + statistics.getMean() + "\n";
 		imageModel = imageComp.getImageSavedModel();
 		if(imageComp.isImageDiffOn() && imageModel != null) {
 			statistics = imageModel.getStatistics();
 			info += "\n";
-			info += "saved min = " + statistics[0] + "\n";
-			info += "saved max = " + statistics[1] + "\n";
-			info += "saved mean = " + statistics[2] + "\n";
+			info += "saved min = " + statistics.getMinimum() + "\n";
+			info += "saved max = " + statistics.getMaximum() + "\n";
+			info += "saved mean = " + statistics.getMean() + "\n";
 		}
 		imageModel = imageComp.getImageDiffModel();
 		if(imageComp.isImageDiffOn() && imageModel != null) {
 			statistics = imageModel.getStatistics();
 			info += "\n";
-			info += "difference min = " + statistics[0] + "\n";
-			info += "difference max = " + statistics[1] + "\n";
-			info += "difference mean = " + statistics[2] + "\n";
+			info += "difference min = " + statistics.getMinimum() + "\n";
+			info += "difference max = " + statistics.getMaximum() + "\n";
+			info += "difference mean = " + statistics.getMean() + "\n";
 		}
 		// Don't use FableUtils as we don't want to log this
 		SWTUtils.infoMsgAsync(info);
