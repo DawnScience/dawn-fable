@@ -18,7 +18,7 @@ import org.eclipse.ui.IViewActionDelegate;
 
 import fable.framework.toolbox.SWTUtils;
 import fable.imageviewer.model.ImageModel;
-import fable.imageviewer.psf.Statistics;
+import org.embl.cca.utils.imageviewer.Statistics;
 
 /**
  * Action to display image info.

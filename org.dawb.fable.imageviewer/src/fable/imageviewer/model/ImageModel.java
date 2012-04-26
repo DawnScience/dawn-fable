@@ -21,9 +21,9 @@ import org.dawb.fabio.FabioFile;
 import org.dawb.fabio.FableJep;
 import org.eclipse.swt.graphics.Rectangle;
 
-import fable.imageviewer.psf.Histogram;
-import fable.imageviewer.psf.Point2DWithValue;
-import fable.imageviewer.psf.Statistics;
+import org.embl.cca.utils.imageviewer.Histogram;
+import org.embl.cca.utils.imageviewer.Point2DWithValue;
+import org.embl.cca.utils.imageviewer.Statistics;
 
 /**
  * This class implements a simple image model that stores the the width, height,

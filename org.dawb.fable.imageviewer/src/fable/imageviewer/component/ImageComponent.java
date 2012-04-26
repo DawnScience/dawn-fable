@@ -48,7 +48,7 @@ import fable.imageviewer.internal.ZoomSelection;
 import fable.imageviewer.model.ImageModel;
 import fable.imageviewer.model.ImageModelFactory;
 import fable.imageviewer.preferences.PreferenceConstants;
-import fable.imageviewer.psf.Statistics;
+import org.embl.cca.utils.imageviewer.Statistics;
 import fable.imageviewer.rcp.Activator;
 import fable.imageviewer.views.ImageView;
 import fable.python.Peak;

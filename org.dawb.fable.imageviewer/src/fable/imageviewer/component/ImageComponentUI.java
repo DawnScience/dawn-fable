@@ -56,12 +56,12 @@ import fable.imageviewer.internal.CustomCoordinatesDialog;
 import fable.imageviewer.internal.IImagesVarKeys;
 import fable.imageviewer.internal.ZoomSelection;
 import fable.imageviewer.preferences.PreferenceConstants;
-import fable.imageviewer.psf.ExecutableManager;
-import fable.imageviewer.psf.LogScale;
-import fable.imageviewer.psf.Statistics;
-import fable.imageviewer.psf.TrackableRunnable;
+import org.embl.cca.utils.imageviewer.ExecutableManager;
+import org.embl.cca.utils.imageviewer.LogScale;
+import org.embl.cca.utils.imageviewer.Statistics;
+import org.embl.cca.utils.imageviewer.TrackableRunnable;
 import fable.imageviewer.rcp.Activator;
-import fable.imageviewer.psf.ConverterUtils;
+import org.embl.cca.utils.imageviewer.ConverterUtils;
 
 /**
  * This class manages the SWT controls for the ImageView. It holds the
