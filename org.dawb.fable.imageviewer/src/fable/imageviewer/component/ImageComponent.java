@@ -36,6 +36,8 @@ import org.eclipse.ui.IWorkbenchListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPart3;
 import org.eclipse.ui.PlatformUI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import fable.framework.logging.FableLogger;
 import fable.framework.navigator.controller.SampleController;
@@ -883,6 +885,8 @@ public class ImageComponent implements IPropertyChangeListener,
 		return palette;
 	}
 
+	private static final Logger logger = LoggerFactory.getLogger(ImageComponent.class);
+	
 	/**
 	 * Creates a palette in the palettes array if it has not been created yet,
 	 * sets that palette, and redisplays the image. New palettes must be added
@@ -894,7 +898,11 @@ public class ImageComponent implements IPropertyChangeListener,
 	 */
 	public void setPalette(int index) {
 
-		this.palette = PaletteFactory.getPalette(index);
+		try {
+			this.palette = PaletteFactory.getPalette(index);
+		} catch (Exception e) {
+			logger.error("Cannot initiate palette!", e);
+		}
 		if (controls != null) {
 			controls.setImageScheme(index);
 		}
