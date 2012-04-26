@@ -27,9 +27,9 @@ import org.slf4j.LoggerFactory;
 
 import fable.framework.toolbox.ToolBox;
 //import fable.python.jep.FableJep;
-import fable.loader.PilatusData;
-import fable.loader.PilatusHeader;
-import fable.loader.PilatusLoader;
+import loaders.pilatus.PilatusData;
+import loaders.pilatus.PilatusHeader;
+import loaders.pilatus.PilatusLoader;
 
 /**
  * The FabioFile class is used to read files using the Python fabio package. It
