@@ -12,7 +12,6 @@ package fable.imageviewer.component;
 import java.util.Vector;
 
 import org.dawb.common.ui.image.PaletteFactory;
-import org.dawb.fabio.FableJep;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
