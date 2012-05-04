@@ -50,6 +50,7 @@ import fable.imageviewer.internal.ZoomSelection;
 import fable.imageviewer.model.ImageModel;
 import fable.imageviewer.model.ImageModelFactory;
 import fable.imageviewer.preferences.PreferenceConstants;
+import org.embl.cca.utils.imageviewer.Statistics;
 import fable.imageviewer.rcp.Activator;
 import fable.imageviewer.views.ImageView;
 import fable.python.Peak;
@@ -243,31 +244,28 @@ public class ImageComponent implements IPropertyChangeListener,
 	 */
 	private boolean peaksOn = false;
 	/**
+	 * Flag that indicates whether PSF is to be applied.
+	 */
+	private boolean psfOn = false;
+	/**
 	 * Sets the size of the rectangle used to mark peaks, Should be odd.
 	 */
 	private int peakMarkerSize = ImageComponentUI.DEFAULT_MARKER_SIZE;
 	/**
-	 * The minimum intensity from the current file.
+	 * The statistics from the current file, for the zoomed area,
+	 * e.g. minimum, maximum, mean intensity.
 	 */
-	private float minimum;
-	/**
-	 * The maximum intensity from the current file.
-	 */
-	private float maximum;
-	/**
-	 * The mean intensity from the current file.
-	 */
-	private float mean;
+	private Statistics zoomStatistics = null;
 	/**
 	 * The minimum intensity currently used. May be from the file or
 	 * user-specified, depending on the setting of autoscale.
 	 */
-	private float userMinimum;
+	private Float userMinimum = Float.NaN;
 	/**
 	 * The maximum intensity currently used. May be from the file or
 	 * user-specified, depending on the setting of autoscale.
 	 */
-	private float userMaximum;
+	private Float userMaximum = Float.NaN;
 	/**
 	 * The current palette.
 	 */
@@ -377,7 +375,7 @@ public class ImageComponent implements IPropertyChangeListener,
 						}
 					}
 					setPeaksOn(true);
-					image.displayImage();
+					image.initAndDisplayImage();
 					// Show peaks if there are some peaks
 					Vector<Float> vals = peakFile.getTabChildren();
 					if (vals != null) {
@@ -536,7 +534,8 @@ public class ImageComponent implements IPropertyChangeListener,
 			}
 			// Use the original rect here, not the image rect. They are the same
 			// for the main view but not for the a zoom view.
-			setStatistics(imageModel.getStatistics(image.getOrigRect()));
+//			setStatistics(imageModel.getStatistics(image.getOrigRect()));
+			setStatistics( image.getOrigRect() );
 			
 		} finally {
 			if (imageModel.getTimeToReadImage()>0) {
@@ -590,10 +589,7 @@ public class ImageComponent implements IPropertyChangeListener,
 				imageModel.getHeight(), imageDiffArray);
 		// TODO: KE: Consider keeping the full statistics so the zoomed
 		// image looks the same as the unzoomed
-		float[] statistics = imageDiffModel.getStatistics(image.getImageRect());
-		minimum = statistics[0];
-		minimum = statistics[1];
-		mean = statistics[2];
+		zoomStatistics = imageDiffModel.getStatistics(image.getImageRect());
 		long elapsed = System.currentTimeMillis() - start;
 		updateStatusLabel(getFileName() + " - " + fileNameSaved + " took "
 				+ elapsed + " ms");
@@ -661,7 +657,7 @@ public class ImageComponent implements IPropertyChangeListener,
 			} catch (Throwable e) {
 				FableLogger.error("Cannot load image "+val, e);
 			}
-			image.displayImage();
+			image.initAndDisplayImage();
 			controls.setFileNumberText(Integer.toString(controller
 					.getCurrentFileIndex()));
 			/*
@@ -696,9 +692,9 @@ public class ImageComponent implements IPropertyChangeListener,
 							FableUtils.excNoTraceMsg(this,
 									"Reading files ahead interrupted", ex);
 						}
-						FableJep fableJep;
+//						FableJep fableJep;
 						try {
-							fableJep = FableJep.getFableJep();
+//							fableJep = FableJep.getFableJep();
 							for (int i = fileReadFrom; i <= fileReadTo; i++) {
 								/*
 								 * do not read the current file in the
@@ -712,11 +708,11 @@ public class ImageComponent implements IPropertyChangeListener,
 										&& i != sampleIndex) {
 									controller.getCurrentsample()
 											.getFilteredfiles().get(i)
-											.readImageAsFloat(fableJep);
+											.readImageAsFloat();
 								}
 								monitor.worked(1);
 							}
-							fableJep.close();
+//							fableJep.close();
 						} catch (Throwable ex) {
 							/*
 							 * FableUtils.excNoTraceMsg(this,
@@ -872,7 +868,7 @@ public class ImageComponent implements IPropertyChangeListener,
 		resetCoordinates();
 		// Clear canvas because image dimensions could change
 		image.clearCanvas();
-		image.displayImage();
+		image.initAndDisplayImage();
 		
 		final IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
 		prefs.setValue(PreferenceConstants.P_ORIENT, orientation);
@@ -908,7 +904,7 @@ public class ImageComponent implements IPropertyChangeListener,
 		}
 		paletteIndex = index;
 		// clearCanvas();
-		image.displayImage();
+		image.initAndDisplayImage(); //Using palette is in init, so not enough to display image
 		
 		final IPreferenceStore prefs = Activator.getDefault().getPreferenceStore();
 		prefs.setValue(PreferenceConstants.P_PALETTE, index);
@@ -918,41 +914,42 @@ public class ImageComponent implements IPropertyChangeListener,
 	/**
 	 * Gets the statistics.
 	 * 
-	 * @return The statistics as float[] {min, max, mean}.
+	 * @return The statistics.
+	 * @remark as float[] {min, max, mean}.
 	 */
-	public float[] getStatistics() {
-		return new float[] { minimum, maximum, mean };
+	public Statistics getStatistics() {
+		return zoomStatistics;
 	}
 
 	/**
 	 * Sets the statistics and autoScale.
 	 * 
 	 * @param statistics
-	 *            The new values as float[] {min, max, mean}.
+	 *            The new values.
+	 * @remark as float[] {min, max, mean}.
 	 */
-	public void setStatistics(float[] statistics, boolean autoScale) {
+	public void setStatistics(Rectangle imageRect, boolean autoScale) {
 		if (controls != null) {
 			controls.setAutoScale(autoScale);
 		}
-		setStatistics(statistics);
+		setStatistics( imageRect );
 	}
 
 	/**
 	 * Sets the statistics.
 	 * 
 	 * @param statistics
-	 *            The new values as float[] {min, max, mean}.
+	 *            The new values.
+	 * @remark as float[] {min, max, mean}.
 	 */
-	public void setStatistics(float[] statistics) {
-		minimum = statistics[0];
-		maximum = statistics[1];
-		mean = statistics[2];
+	public void setStatistics(Rectangle imageRect) {
+		zoomStatistics = getImageModel().getStatistics( imageRect );
 		// Set the UI controls
 		if (controls != null) {
-			controls.setMinMaxText(statistics);
+			controls.setMinMaxValueText2(zoomStatistics);
 		}
 		if (image != null) {
-			image.displayImage();
+			image.initAndDisplayImage();
 		}
 	}
 
@@ -1056,6 +1053,23 @@ public class ImageComponent implements IPropertyChangeListener,
 	}
 
 	/**
+	 * @return the psfOn
+	 */
+	public boolean isPSFOn() {
+		return psfOn;
+	}
+
+	/**
+	 * @param psfOn
+	 *            the psfOn to set
+	 */
+	public void setPSFOn(boolean psfOn) {
+		this.psfOn = psfOn;
+		// Set the button
+		controls.setPSF(psfOn);
+	}
+
+	/**
 	 * @return the peakMarkerSize
 	 */
 	public int getPeakMarkerSize() {
@@ -1069,7 +1083,6 @@ public class ImageComponent implements IPropertyChangeListener,
 	public void setPeakMarkerSize(int peakMarkerSize) {
 		this.peakMarkerSize = peakMarkerSize;
 	}
-
 
 	/**
 	 * @return the controls
@@ -1144,64 +1157,74 @@ public class ImageComponent implements IPropertyChangeListener,
 			setPartName(getSecondaryId() + " " + getFileName());
 		}
 		image.setImageChanged(true);
-		image.displayImage();
+		image.initAndDisplayImage();
 	}
 
 	/**
 	 * @return the minimum
 	 */
 	public float getMinimum() {
-		return minimum;
+		return zoomStatistics.getMinimum();
 	}
 
 	/**
 	 * @return the maximum
 	 */
 	public float getMaximum() {
-		return maximum;
+		return zoomStatistics.getMaximum();
 	}
 
 	/**
 	 * @return the mean
 	 */
 	public float getMean() {
-		return mean;
+		return zoomStatistics.getMean();
 	}
 
 	/**
 	 * @return the userMinimum
 	 */
-	public float getUserMinimum() {
+	public Float getUserMinimum() {
 		return userMinimum;
 	}
 
 	/**
 	 * @param userMinimum
 	 *            the userMinimum to set
+	 * @return false if value is not changed 
 	 */
-	public void setUserMinimum(float userMinimum, boolean requireTextUpdate) {
+	public boolean setUserMinimum(float userMinimum) {
+		if( this.userMinimum == userMinimum )
+			return false;
 		this.userMinimum = userMinimum;
-		if (controls != null && requireTextUpdate) {
-			controls.setUserMinimumText(Float.toString(userMinimum));
+		if (controls != null) {
+			controls.setUserMinimumText(userMinimum);
+			controls.setUserMinimumScale(userMinimum);
 		}
+		return true;
 	}
 
 	/**
 	 * @return the userMaximum
 	 */
-	public float getUserMaximum() {
+	public Float getUserMaximum() {
 		return userMaximum;
 	}
 
 	/**
 	 * @param userMaximum
 	 *            the userMaximum to set
+	 * @return false if value is not changed 
 	 */
-	public void setUserMaximum(float userMaximum, boolean requireTextUpdate) {
+	public boolean setUserMaximum(float userMaximum) {
+		if( this.userMaximum == userMaximum )
+			return false;
 		this.userMaximum = userMaximum;
-		if (controls != null && requireTextUpdate) {
-			controls.setUserMaximumText(Float.toString(userMaximum));
+		if (controls != null) {
+			controls.setUserMaximumText(userMaximum);
+			controls.setUserMaximumScale(userMaximum);
 		}
+		return true;
 	}
 
 	/**

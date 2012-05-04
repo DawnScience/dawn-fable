@@ -21,10 +21,15 @@ import java.util.concurrent.Semaphore;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import fable.framework.toolbox.ToolBox;
+//import fable.python.jep.FableJep;
+import loaders.pilatus.PilatusData;
+import loaders.pilatus.PilatusHeader;
+import loaders.pilatus.PilatusLoader;
 
 /**
  * The FabioFile class is used to read files using the Python fabio package. It
@@ -42,24 +47,25 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 
 	private Semaphore semaphore = new Semaphore(1);
 	public boolean headerRead = false;
-	public boolean imageRead = false;
+//	public boolean imageRead = false;
 	private HashMap<String, String> header;
 	private String fullFileName;
 	private String fileName;
 	private Vector<String> vKeysInHeader; // a list of keys as they arrive in
 	// the header; useful in edfViewer
-	private int width, height;
-	private float minimum = Float.MAX_VALUE;
-	private float maximum = Float.MIN_VALUE;
-	private float sum = 0.f;
-	private float mean = Float.MIN_VALUE;
+//	private int width, height;
+//	private float minimum = Float.MAX_VALUE;
+//	private float maximum = Float.MIN_VALUE;
+//	private float sum = 0.f;
+//	private float mean = Float.MIN_VALUE;
 	// private float stddev = Float.MIN_VALUE;
-	private int floatImageBufferI = 0;
+	final int IMAGE_CACHE_MAX = 10;
+	private int floatImageBufferI = -1;
 	private long timeToReadImage = 0;
 	private String stem; // GS for peaksearch
 	private String fileNumber; // Gs for peaksearch
 	ImageLoader loader; // the loader for the current image file
-	ImageData[] imageDataArray; // all image data read from the current file
+//	ImageData[] imageDataArray; // all image data read from the current file
 	Logger logger;
 	private int index;
 	private boolean flag = true;
@@ -68,7 +74,7 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * images in memory. This caches the image so that the most recently read
 	 * images will be found in the cache and do not have to be read from disk
 	 */
-	private static float floatImageBuffer[][] = null;
+	private static PilatusData floatImageBuffer[] = null;
 	private static int floatImageBufferPointer = 0;
 	private static String fileImageBuffer[] = null;
 
@@ -89,9 +95,10 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 		logger = LoggerFactory.getLogger(FabioFile.class);
 		if (floatImageBuffer == null) {
 			// logger.debug("initialise floatImageBuffer");
-			floatImageBuffer = new float[10][];
-			fileImageBuffer = new String[10];
-			for (int i = 0; i < 10; i++) {
+//			floatImageBuffer = new float[IMAGE_CACHE_MAX][];
+			floatImageBuffer = new PilatusData[IMAGE_CACHE_MAX];
+			fileImageBuffer = new String[IMAGE_CACHE_MAX];
+			for (int i = 0; i < floatImageBuffer.length; i++) {
 				floatImageBuffer[i] = null;
 				fileImageBuffer[i] = new String();
 			}
@@ -100,7 +107,6 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 		if (!new File(_fullFileName).exists()) {
 			throw new FabioFileException(this.getClass().getName(), "FabioFile", "File not found: " + _fullFileName);
 		}
-		headerRead = false;
 		this.header = new HashMap<String, String>();
 		vKeysInHeader = new Vector<String>();
 		fullFileName = _fullFileName;
@@ -118,7 +124,7 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	public synchronized void release() {
 		semaphore.release();
 	}
-
+/*
 	private void importFabioModules(FableJep fj) throws Throwable {
 		try {
 			final boolean isMsg = fj.isRequireErrorMessage();
@@ -130,7 +136,7 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 			throw e;
 		}
 	}
-
+*/
 	/**
 	 * Set the fullfilename of fabio file if different from header
 	 * 
@@ -142,6 +148,10 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 
 	public String getFullFileName() {
 		return fullFileName;
+	}
+
+	public boolean isHeaderRead() {
+		return headerRead;
 	}
 
 	/*
@@ -161,23 +171,19 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 */
 	@Override
 	public String toString() {
-		if (!headerRead) {
-
-			try {
-				loadHeader();
-			} catch (FabioFileException e) {
-
-			}
-
-		}
 		String myString = "{ \\n";
-		Set<Map.Entry<String, String>> mySet = header.entrySet();
-		Iterator<Entry<String, String>> it = mySet.iterator();
-		while (it.hasNext()) {
-
-			Map.Entry<String, String> entry = (Map.Entry<String, String>) it
-					.next();
-			myString += entry.getKey() + "=" + entry.getValue() + ";\\n";
+		try {
+			synchronized( header ) {
+				if (!isHeaderRead())
+					loadHeader();
+				Set<Map.Entry<String, String>> mySet = header.entrySet();
+				Iterator<Entry<String, String>> it = mySet.iterator();
+				while (it.hasNext()) {
+					Map.Entry<String, String> entry = (Map.Entry<String, String>) it.next();
+					myString += entry.getKey() + "=" + entry.getValue() + ";\\n";
+				}
+			}
+		} catch (FabioFileException e) {
 		}
 		myString += "} \\n";
 		return myString;
@@ -194,13 +200,15 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 *         caught !)
 	 */
 	public void loadHeader() throws FabioFileException {
-		if (!headerRead)
-			try {
-				loadHeader(getFableJep());
-			} catch (Throwable e) {
-				throw new FabioFileException(this.getClass().getName(),
-						"loadHeader" + fullFileName, e.getMessage());
-			}
+		synchronized( header ) {
+			if (!isHeaderRead())
+				try {
+					loadHeaderExternal();
+				} catch (Throwable e) {
+					throw new FabioFileException(this.getClass().getName(),
+							"loadHeader " + fullFileName, e.getMessage());
+				}
+		}
 	}
 
 	/**
@@ -211,62 +219,76 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * @throws FabioFileException
 	 * 
 	 */
-	public synchronized void loadHeader(FableJep fableJep)
-			throws FabioFileException {
-
-		if (!headerRead) {
-			acquire();
-			File f = new File(fullFileName);
-			if (f.exists()) {
-				try {
-					importFabioModules(fableJep);
-					fableJep.set("filename", fullFileName);
-					fableJep.eval("im = fabio.openimage.openheader(filename)");
-					fableJep.eval("keys = im.header.keys()");
-					fableJep.eval("vals = im.header.values()");
-					fableJep.eval("res = len(keys)");
-					int n = (Integer) fableJep.getValue("res");
-					String key = "", val;
-					header = new HashMap<String, String>();
-					for (int i = 0; i < n; i++) {
-						fableJep.set("i", i);
-						fableJep.eval("res = str(keys[i])"); // have python
-						key = (String) fableJep.getValue("res");
-						try {
-							// coerce to str
-							fableJep.eval("res = str(vals[i])");
-							val = (String) fableJep.getValue("res");
-						} catch (Throwable e) {
-							// if header fails
-							val = "-1";
-						}
-						header.put(key, val);
-						vKeysInHeader.add(key);
-					}
-					// Add Gaelle for sorting
-					this.addHeaderInfo("name", fileName);
-					this.addHeaderInfo("#", "" + index);
-					headerRead = true;
-				} catch (Throwable e) {
-					release();
-					logger.error(e.getMessage());
-					throw new FabioFileException(this.getClass().getName(),
-							"loadHeader" + fullFileName, e.getMessage());
-				}
-			} else {
-				release();
-				throw new FabioFileException(this.getClass().getName(),
-						"loadHeader", "File not found" + fullFileName);
+	public void loadHeaderExternal() throws FabioFileException {
+		synchronized( header ) {
+			if (!isHeaderRead()) {
+				PilatusHeader pHeader = PilatusLoader.loadHeader(fullFileName);
+				pHeader.getKeyAndValuePairs().put("name", fileName);
+				pHeader.getKeyAndValuePairs().put("#", "" + index);
+				vKeysInHeader.addAll( pHeader.getKeyAndValuePairs().keySet() );
+				header.putAll( pHeader.getKeyAndValuePairs() );
+				headerRead = true;
 			}
-			release();
 		}
+/*
+		FableJep fableJep = getFableJep();
+		if (!isHeaderRead()) {
+			acquire();
+			try {
+				File f = new File(fullFileName);
+				if (f.exists()) {
+					try {
+						importFabioModules(fableJep);
+						fableJep.set("filename", fullFileName);
+						fableJep.eval("im = fabio.openimage.openheader(filename)");
+						fableJep.eval("keys = im.header.keys()");
+						fableJep.eval("vals = im.header.values()");
+						fableJep.eval("res = len(keys)");
+						int n = (Integer) fableJep.getValue("res");
+						String key = "", val;
+						HashMap<String, String> newHeader = new HashMap<String, String>();
+						for (int i = 0; i < n; i++) {
+							fableJep.set("i", i);
+							fableJep.eval("res = str(keys[i])"); // have python
+							key = (String) fableJep.getValue("res");
+							try {
+								// coerce to str
+								fableJep.eval("res = str(vals[i])");
+								val = (String) fableJep.getValue("res");
+							} catch (Throwable e) {
+								// if header fails
+								val = "-1";
+							}
+							newHeader.put(key, val);
+							vKeysInHeader.add(key);
+						}
+						// Add Gaelle for sorting
+						newHeader.put("name", fileName);
+						newHeader.put("#", "" + index);
+						header = newHeader;
+					} catch (Throwable e) {
+						logger.error(e.getMessage());
+						throw new FabioFileException(this.getClass().getName(),
+								"loadHeader" + fullFileName, e.getMessage());
+					}
+				} else {
+					throw new FabioFileException(this.getClass().getName(),
+							"loadHeader", "File not found" + fullFileName);
+				}
+			} finally {
+				release();
+			}
+		}
+*/
 	}
 
 	/**
 	 * Add new key in header info
 	 */
 	public void addHeaderInfo(String key, String value) {
-		header.put(key, value);
+		synchronized( header ) {
+			header.put(key, value);
+		}
 	}
 
 	/**
@@ -276,12 +298,15 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * @throws Throwable
 	 */
 	public String[] getKeys() throws FabioFileException, Throwable {
-		if (!headerRead) {
-			loadHeader();
+		Set<String> mySet;
+		synchronized( header ) {
+			if (!isHeaderRead()) {
+				loadHeader();
+			}
+			mySet = header.keySet();
 		}
-		Set<String> mySet = header.keySet();
 		String[] keys = mySet.toArray(new String[(mySet.size())]);
-		quicksort(keys, 0, keys.length);
+		ToolBox.quicksort(keys, 0, keys.length);
 		return keys;
 	}
 	public static void quicksort(String[] list, int begin, int end) {
@@ -329,11 +354,12 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 */
 	public Vector<String> getKeysAsListedInHeader() throws FabioFileException,
 			Throwable {
-		if (!headerRead) {
-			loadHeader();
+		synchronized( header ) {
+			if (!isHeaderRead()) {
+				loadHeader();
+			}
+			return vKeysInHeader;
 		}
-
-		return vKeysInHeader;
 	}
 
 	/**
@@ -345,22 +371,19 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * @throws Throwable
 	 */
 	public String getValue(String key) throws FabioFileException {
-		if (!headerRead) {
-			loadHeader();
+		synchronized( header ) {
+			if (!isHeaderRead()) {
+				loadHeader();
+			}
+			if (header.containsKey(key)) {
+				return header.get(key);
+			} else {
+				throw new FabioFileException(this.getClass().getName(),
+						"getValue()", "The key " + key
+								+ " has not been found in the header for the file "
+								+ fileName);
+			}
 		}
-		String myValue = "";
-		if (header.containsKey(key)) {
-			myValue = header.get(key);
-		} else {
-
-			throw new FabioFileException(this.getClass().getName(),
-					"getValue()", "The key " + key
-							+ " has not be found in the header for the file "
-							+ fileName);
-		}
-
-		return myValue;
-
 	}
 
 	/**
@@ -477,12 +500,13 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * @return image width
 	 * @throws Throwable
 	 */
-
 	public int getWidth() throws Throwable {
-		if (!imageRead) {
-			readImage();
+		synchronized( floatImageBuffer ) {
+			if (!isCached()) {
+				readImage();
+			}
+			return floatImageBuffer[floatImageBufferI].getWidth();
 		}
-		return width;
 	}
 
 	/**
@@ -492,14 +516,34 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * @throws Throwable
 	 */
 	public int getHeight() throws Throwable {
-		if (!imageRead) {
-			readImage();
+		synchronized( floatImageBuffer ) {
+			if (!isCached()) {
+				readImage();
+			}
+			return floatImageBuffer[floatImageBufferI].getHeight();
 		}
-		return height;
 	}
 
 	public int getBytesPerPixel() {
 		return 2;
+	}
+
+	public boolean isCached() {
+		do {
+			if( floatImageBufferI >= 0 && fileImageBuffer[floatImageBufferI] != null
+				&& fileImageBuffer[floatImageBufferI].equalsIgnoreCase(fullFileName) )
+				break;
+			int i;
+			int iMax = fileImageBuffer.length;
+			for( i = 0; i < iMax; i++ )
+				if( fileImageBuffer[ i ] != null
+					&& fileImageBuffer[ i ].equalsIgnoreCase( fullFileName ) )
+					break;
+			if( i >= iMax )
+				i = -1;
+			floatImageBufferI = i;
+		} while( false );
+		return floatImageBufferI >= 0;
 	}
 
 	/**
@@ -517,7 +561,18 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * @throws Throwable
 	 */
 	public void readImageAsFloat() throws Throwable {
-		readImageAsFloat(getFableJep());
+		readImageAsFloatExternal();
+	}
+
+	/**
+	 * increment float image buffer pointer, wrap around if end of buffer
+	 * reached
+	 */
+	private void incrementBufferPointer() {
+		synchronized( floatImageBuffer ) {
+			if (++floatImageBufferPointer >= floatImageBuffer.length)
+				floatImageBufferPointer = 0;
+		}
 	}
 
 	/**
@@ -525,18 +580,24 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * 
 	 * @throws Throwable
 	 */
-	public synchronized void readImageAsFloat(FableJep fableJep) throws Throwable {
-		/* first check if the file is cached */
-		boolean fileCached = false;
-		if (floatImageBufferI > -1) {
-			if (fileImageBuffer[floatImageBufferI] != null) {
-				if (fileImageBuffer[floatImageBufferI]
-						.equalsIgnoreCase(fullFileName))
-					fileCached = true;
-			}
+	protected void readImageAsFloatExternal() throws Throwable {
+		synchronized( floatImageBuffer ) {
+			if (!isCached()) {
+				long before = System.currentTimeMillis();
+				PilatusData pData = PilatusLoader.loadPilatus(fullFileName);
+				floatImageBuffer[floatImageBufferPointer] = pData;
+				fileImageBuffer[floatImageBufferPointer] = fullFileName;
+				floatImageBufferI = floatImageBufferPointer;
+				incrementBufferPointer();
+				timeToReadImage = System.currentTimeMillis() - before;
+			} else
+				timeToReadImage = 0;
+			return;
 		}
-		timeToReadImage = 0;
-		if (!imageRead || !fileCached) {
+/*
+		FableJep fableJep = getFableJep();
+		// First check if the file is cached
+		if (!isCached()) {
 			logger.debug("read file " + fileName);
 			try {
 				long before = System.currentTimeMillis();
@@ -544,11 +605,7 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 				fableJep.set("filename", fullFileName);
 				fableJep.eval("im = fabio.openimage.openimage(filename)");
 				fableJep.eval("res = im.data.astype(numpy.float32).tostring()");
-				floatImageBuffer[floatImageBufferPointer] = (float[]) fableJep
-						.getValue_floatarray("res");
-				floatImageBufferI = floatImageBufferPointer;
-				fileImageBuffer[floatImageBufferPointer] = fullFileName;
-				incrementBufferPointer();
+				float data[] = (float[]) fableJep.getValue_floatarray("res");
 				// now overwrite data to free memory in python
 				fableJep.eval("res = im.dim1");
 				width = (Integer) fableJep.getValue("res");
@@ -557,6 +614,7 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 				// long elapsed;
 				// long before_get;
 				height = (Integer) fableJep.getValue("res");
+*/
 				/*
 				 * getting the mean via Python takes too long (approx. 160 ms
 				 * for 2048x2048 image)
@@ -580,7 +638,7 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 				 * logger.info("fabio.getstddev() took "+elapsed+" ms"); }
 				 */
 				// calculate min and max if not done so already
-				if (minimum == Float.MAX_VALUE || maximum == Float.MIN_VALUE) {
+//				if (minimum == Float.MAX_VALUE || maximum == Float.MIN_VALUE) {
 					/*
 					 * could use fabio to calculate min, max and mean (if we
 					 * assume NumPy is faster than Java) but the data type
@@ -597,37 +655,34 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 					// Java version to calculate minimum and maximum (takes only
 					// 60 ms for 2048x2048 image)
 					// before_get = System.currentTimeMillis();
+/*
 					sum = 0.f;
-					for (int i = 0; i < floatImageBuffer[floatImageBufferI].length; i++) {
-						sum += floatImageBuffer[floatImageBufferI][i];
-						if (floatImageBuffer[floatImageBufferI][i] < minimum)
-							minimum = floatImageBuffer[floatImageBufferI][i];
-						if (floatImageBuffer[floatImageBufferI][i] > maximum)
-							maximum = floatImageBuffer[floatImageBufferI][i];
+					int iMax = data.length;
+					for (int i = 0; i < iMax; i++) {
+						float f = data[i];
+						sum += f;
+						if (f < minimum)
+							minimum = f;
+						if (f > maximum)
+							maximum = f;
 					}
-					mean = sum
-							/ (float) (floatImageBuffer[floatImageBufferI].length);
+					mean = sum / (float) (iMax);
 					// elapsed = System.currentTimeMillis() - before_get;
 					// logger.info("java get mean,min.max took "+elapsed+" ms");
 				}
+				floatImageBuffer[floatImageBufferPointer] = data;
+				fileImageBuffer[floatImageBufferPointer] = fullFileName;
+				floatImageBufferI = floatImageBufferPointer;
+				incrementBufferPointer();
 				timeToReadImage = System.currentTimeMillis() - before;
-				imageRead = true;
 			} catch (Throwable j) {
 				throw j;
 				// j.printStackTrace();
 			}
-		}
+		} else
+			timeToReadImage = 0;
 		return;
-	}
-
-	/**
-	 * increment float image buffer pointer, wrap around if end of buffer
-	 * reached
-	 */
-	private void incrementBufferPointer() {
-		floatImageBufferPointer++;
-		if (floatImageBufferPointer >= floatImageBuffer.length)
-			floatImageBufferPointer = 0;
+*/
 	}
 
 	/**
@@ -636,19 +691,11 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * @return image as floating point array
 	 * @throws Throwable
 	 */
-
 	public float[] getImageAsFloat() throws Throwable {
-		boolean fileCached = false;
-		if (floatImageBufferI > -1) {
-			if (fileImageBuffer[floatImageBufferI] != null) {
-				if (fileImageBuffer[floatImageBufferI]
-						.equalsIgnoreCase(fullFileName))
-					fileCached = true;
-			}
+		synchronized( floatImageBuffer ) {
+			readImageAsFloat();
+			return floatImageBuffer[floatImageBufferI].getData();
 		}
-		timeToReadImage = 0;
-		if (!fileCached) readImageAsFloat();
-		return floatImageBuffer[floatImageBufferI];
 	}
 
 	/**
@@ -656,27 +703,19 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * 
 	 * @return image as floating point array
 	 */
-
+/*
 	public float[] getImageAsFloat(FableJep jep) {
-		boolean fileCached = false;
-		if (floatImageBufferI > -1) {
-			if (fileImageBuffer[floatImageBufferI] != null) {
-				if (fileImageBuffer[floatImageBufferI]
-						.equalsIgnoreCase(fullFileName))
-					fileCached = true;
-			}
-		}
 		timeToReadImage = 0;
-		if (!fileCached)
+		if (!isCached())
 			try {
-				readImageAsFloat(jep);
+				readImageAsFloat2(jep);
 				fileCached = true;
 			} catch (Throwable e) {
 				// do not print exception - what should be done ?
 			}
 		return floatImageBuffer[floatImageBufferI];
 	}
-
+*/
 	/**
 	 * return image as int by converting the float image to int, do not keep the
 	 * image in memory
@@ -685,20 +724,11 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * @throws Throwable
 	 */
 	public int[] getImageAsInt() throws Throwable {
-		boolean fileCached = false;
-		if (floatImageBufferI > -1) {
-			if (fileImageBuffer[floatImageBufferI] != null) {
-				if (fileImageBuffer[floatImageBufferI]
-						.equalsIgnoreCase(fullFileName))
-					fileCached = true;
-			}
-		}
-		timeToReadImage = 0;
-		if (!fileCached)
-			readImageAsFloat();
+		float[] data = getImageAsFloat();
 		int[] _imageAsInt = new int[getWidth() * getHeight()];
-		for (int i = 0; i < floatImageBuffer[floatImageBufferI].length; i++) {
-			_imageAsInt[i] = (int) floatImageBuffer[floatImageBufferI][i];
+		int iMax = data.length;
+		for (int i = 0; i < iMax; i++) {
+			_imageAsInt[i] = (int) data[i];
 		}
 		return _imageAsInt;
 	}
@@ -710,13 +740,14 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * @throws Throwable
 	 * 
 	 */
-	public float getMinimum() throws Throwable {
-		if (!imageRead) {
+/*
+	public float getMinimum2() throws Throwable {
+		if (!isCached()) {
 			readImage();
 		}
 		return minimum;
 	}
-
+*/
 	/**
 	 * return maximum value in image
 	 * 
@@ -724,13 +755,14 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * @throws Throwable
 	 * 
 	 */
-	public float getMaximum() throws Throwable {
-		if (!imageRead) {
+/*
+	public float getMaximum2() throws Throwable {
+		if (!isCached()) {
 			readImage();
 		}
 		return maximum;
 	}
-
+*/
 	/**
 	 * return mean value in image
 	 * 
@@ -738,13 +770,14 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * @throws Throwable
 	 * 
 	 */
-	public float getMean() throws Throwable {
-		if (!imageRead) {
+/*
+	public float getMean2() throws Throwable {
+		if (!isCached()) {
 			readImage();
 		}
 		return mean;
 	}
-
+*/
 	/*
 	 * What is the flag used for ? We need a description here or it should be
 	 * deleted (andy)
@@ -804,8 +837,9 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 		}
 
 	}
-
+/*
 	private FableJep getFableJep() throws Throwable {
 		return FableJep.getFableJep();
 	}
+*/
 }
