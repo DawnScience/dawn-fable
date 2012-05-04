@@ -38,8 +38,8 @@ Export-Package: fable.imageviewer.actions;
    org.eclipse.swt.events,
    org.eclipse.ui,
    org.eclipse.ui.part,
+   org.embl.cca.utils.imageviewer,
    fable.imageviewer.model,
-   fable.imageviewer.psf,
    org.eclipse.swt.graphics,
    org.eclipse.jface.viewers,
    org.eclipse.jface.util,
@@ -58,9 +58,9 @@ Export-Package: fable.imageviewer.actions;
    org.eclipse.swt.widgets",
  fable.imageviewer.model;
   uses:="org.eclipse.core.runtime,
-   fable.imageviewer.psf,
    org.eclipse.swt.graphics,
-   org.dawb.fabio",
+   org.dawb.fabio,
+   org.embl.cca.utils.imageviewer",
  fable.imageviewer.perspective;uses:="org.eclipse.ui",
  fable.imageviewer.rcp;
   uses:="org.eclipse.jface.action,
