@@ -30,6 +30,7 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -148,6 +149,11 @@ public class ImageComponentUI implements IImagesVarKeys {
 	
 	private boolean off = false;
 	private Composite titleComponent;
+	private Composite legendComposite;
+	private Canvas canvaslegend;
+	private static int canvaslegendsize;
+
+	public static  GC legendCanvasGC;
 
 	/**
 	 * Creates all the controls.
@@ -206,11 +212,45 @@ public class ImageComponentUI implements IImagesVarKeys {
 		createZoomActions(iv.getActionBars());
 		createImageControlSwitches(iv.getActionBars());
 		createImageControlMenus(iv.getActionBars());
-       
+
+		/*composite principal*/
+		GridLayout grid3Cols = new GridLayout();
+		grid3Cols.numColumns = 2;
+		grid3Cols.horizontalSpacing=200;
+		grid3Cols.marginWidth=200;
+		grid3Cols.verticalSpacing=200;
+		Composite legendImageComposite = new Composite(parent, SWT.NULL);
+		legendImageComposite.setLayout(grid3Cols);
+		legendImageComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.FILL_VERTICAL));
+		GridUtils.removeMargins(legendImageComposite);
+
+		
+		GridLayout grid4Cols = new GridLayout();
+
+		
+		legendComposite = new Composite(legendImageComposite, SWT.NULL);
+		legendComposite.setLayout(grid4Cols);
+		legendComposite.setLayoutData(new GridData(SWT.NONE, SWT.FILL, false, true, 1, 1));
+		
+		
+		GridUtils.removeMargins(legendComposite);
+		GridUtils.setVisible(legendComposite, true);
+		this.image.setLegendOn(false);
+			
+		canvaslegend=new Canvas(legendComposite,SWT.NONE);
+		canvaslegend.setBackground(display.getSystemColor(SWT.COLOR_RED));
+		GridData gridDataLegend = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+		canvaslegendsize=58;
+		gridDataLegend.widthHint = canvaslegendsize;	
+		canvaslegend.setLayoutData(gridDataLegend);
+		canvaslegend.layout();
+		
+        GridUtils.setVisible(legendComposite, false);
+		
 		GridLayout grid2Cols = new GridLayout();
 		// KE: Why 2 cols ?
 		// grid2Cols.numColumns = 2;
-		Composite canvasComposite = new Composite(parent, SWT.NULL);
+		Composite canvasComposite = new Composite(legendImageComposite, SWT.NULL);
 		canvasComposite.setLayout(grid2Cols);
 		canvasComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL | GridData.FILL_VERTICAL));
 		GridUtils.removeMargins(canvasComposite);
@@ -232,6 +272,10 @@ public class ImageComponentUI implements IImagesVarKeys {
 		
 	}
 	
+	public Canvas getCanvaslegend() {
+		return canvaslegend;
+	}
+
 	public void setTitle(final String title) {
 		if (titleLabel.isDisposed()) return;
 		if (title==null) {
@@ -1093,6 +1137,8 @@ public class ImageComponentUI implements IImagesVarKeys {
 	public void setLegendShowing(boolean legendShowing) {
 		this.legendShowing = legendShowing;
 		this.image.setLegendOn(legendShowing);
+		GridUtils.setVisible(legendComposite, legendShowing);
+		legendComposite.getParent().layout(new Control[]{legendComposite});
 	}
 	public void setFocus() {
 		// TODO Auto-generated method stub
@@ -1195,5 +1241,13 @@ public class ImageComponentUI implements IImagesVarKeys {
 				&& !suggestedMaximumText.getText().equals( text )) {
 			suggestedMaximumText.setText(text);
 		}
+	}
+
+	public static int getCanvaslegendsize() {
+		return canvaslegendsize;
+	}
+
+	public static void setCanvaslegendsize(int canvaslegendsize) {
+		ImageComponentUI.canvaslegendsize = canvaslegendsize;
 	}
 }
