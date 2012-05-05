@@ -34,10 +34,10 @@ import org.embl.cca.utils.imageviewer.Statistics;
  * @author evans
  * 
  */
-public class ImageModel {
+public class ImageModel implements Cloneable {
 	// Note: Change the ImageInfoAction if more fields are added
 	private EventListenerList listenerList = null;
-	private String fileName = null;;
+	private String fileName = null;
 	private int width = 0;
 	private int height = 0;
 	private float[] data = null;
@@ -59,7 +59,7 @@ public class ImageModel {
 	/**
 	 * Empty constructor. Sets the listenerList.
 	 */
-	ImageModel() {
+	public ImageModel() {
 		listenerList = new EventListenerList();
 	}
 
@@ -72,7 +72,7 @@ public class ImageModel {
 	 * @param fabioFile
 	 * @throws JepException
 	 */
-	ImageModel(FabioFile fabioFile) throws Throwable {
+	public ImageModel(FabioFile fabioFile) throws Throwable {
 		this();
 		set(fabioFile);
 	}
@@ -90,13 +90,27 @@ public class ImageModel {
 	 * @param data
 	 * @param time
 	 */
-	ImageModel(String fileName, int width, int height, float[] data, long time) {
+	public ImageModel(String fileName, int width, int height, float[] data, long time) {
 		this();
 		reset(fileName, width, height, data);
 		this.time = time;
 	}
 
-	/**
+    public ImageModel clone() {
+    	ImageModel clone = new ImageModel();
+		if( fileName != null )
+			clone.fileName = fileName;
+		clone.width = width;
+		clone.height = height;
+		if( data != null )
+			clone.data = data.clone();
+		if( statistics != null )
+			clone.statistics = statistics.clone();
+		clone.time = time;
+    	return clone;
+    }
+
+    /**
 	 * Adds the listener.
 	 * 
 	 * @param l
@@ -416,4 +430,21 @@ public class ImageModel {
 		return time;
 	}
 
+	//Assuming the width and height is same in this and in imageModel
+	public void addImageModel( ImageModel imageModel ) {
+		float[] fthisdata = getData();
+		float[] fdata = imageModel.getData();
+		int jMax = Math.min( fthisdata.length, fdata.length ); //If assumption is right, the two lengths are same
+		for( int j = 0; j < jMax; j++ )
+			fthisdata[j] += fdata[j];
+	}
+
+	//Assuming the width and height is same in this and in imageModel
+	public void subImageModel( ImageModel imageModel ) {
+		float[] fsetdata = getData();
+		float[] fdata = imageModel.getData();
+		int jMax = Math.min( fsetdata.length, fdata.length ); //If assumption is right, the two lengths are same
+		for( int j = 0; j < jMax; j++ )
+			fsetdata[j] -= fdata[j];
+	}
 }
