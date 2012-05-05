@@ -24,7 +24,7 @@ public interface IFableImage {
 	public int getWidth();
 
 	/**
-	 * The secpnd dimension of the image
+	 * The second dimension of the image
 	 * @return
 	 */
 	public int getHeight();
