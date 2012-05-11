@@ -22,13 +22,13 @@ import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.ImageLoader;
+import org.embl.cca.utils.imageviewer.HeaderData;
+import org.embl.cca.utils.imageviewer.TwoDimFloatArrayData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import fable.framework.toolbox.ToolBox;
 //import fable.python.jep.FableJep;
-import loaders.pilatus.PilatusData;
-import loaders.pilatus.PilatusHeader;
 import loaders.pilatus.PilatusLoader;
 
 /**
@@ -74,7 +74,7 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 * images in memory. This caches the image so that the most recently read
 	 * images will be found in the cache and do not have to be read from disk
 	 */
-	private static PilatusData floatImageBuffer[] = null;
+	private static TwoDimFloatArrayData floatImageBuffer[] = null;
 	private static int floatImageBufferPointer = 0;
 	private static String fileImageBuffer[] = null;
 
@@ -96,7 +96,7 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 		if (floatImageBuffer == null) {
 			// logger.debug("initialise floatImageBuffer");
 //			floatImageBuffer = new float[IMAGE_CACHE_MAX][];
-			floatImageBuffer = new PilatusData[IMAGE_CACHE_MAX];
+			floatImageBuffer = new TwoDimFloatArrayData[IMAGE_CACHE_MAX];
 			fileImageBuffer = new String[IMAGE_CACHE_MAX];
 			for (int i = 0; i < floatImageBuffer.length; i++) {
 				floatImageBuffer[i] = null;
@@ -124,7 +124,7 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	public synchronized void release() {
 		semaphore.release();
 	}
-/*
+
 	private void importFabioModules(FableJep fj) throws Throwable {
 		try {
 			final boolean isMsg = fj.isRequireErrorMessage();
@@ -136,7 +136,7 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 			throw e;
 		}
 	}
-*/
+
 	/**
 	 * Set the fullfilename of fabio file if different from header
 	 * 
@@ -221,23 +221,16 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 */
 	public void loadHeaderExternal() throws FabioFileException {
 		synchronized( header ) {
-			if (!isHeaderRead()) {
-				PilatusHeader pHeader = PilatusLoader.loadHeader(fullFileName);
-				pHeader.getKeyAndValuePairs().put("name", fileName);
-				pHeader.getKeyAndValuePairs().put("#", "" + index);
-				vKeysInHeader.addAll( pHeader.getKeyAndValuePairs().keySet() );
-				header.putAll( pHeader.getKeyAndValuePairs() );
-				headerRead = true;
-			}
-		}
-/*
-		FableJep fableJep = getFableJep();
-		if (!isHeaderRead()) {
-			acquire();
-			try {
+			if (isHeaderRead())
+				return;
+			HeaderData pHeader = null;
+			if( PilatusLoader.supports( fullFileName ) ) {
+				pHeader = PilatusLoader.loadHeader(fullFileName);
+			} else {
 				File f = new File(fullFileName);
 				if (f.exists()) {
 					try {
+						FableJep fableJep = getFableJep();
 						importFabioModules(fableJep);
 						fableJep.set("filename", fullFileName);
 						fableJep.eval("im = fabio.openimage.openheader(filename)");
@@ -260,12 +253,8 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 								val = "-1";
 							}
 							newHeader.put(key, val);
-							vKeysInHeader.add(key);
 						}
-						// Add Gaelle for sorting
-						newHeader.put("name", fileName);
-						newHeader.put("#", "" + index);
-						header = newHeader;
+						pHeader = new HeaderData( newHeader );
 					} catch (Throwable e) {
 						logger.error(e.getMessage());
 						throw new FabioFileException(this.getClass().getName(),
@@ -275,11 +264,13 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 					throw new FabioFileException(this.getClass().getName(),
 							"loadHeader", "File not found" + fullFileName);
 				}
-			} finally {
-				release();
 			}
+			pHeader.getKeyAndValuePairs().put("name", fileName);
+			pHeader.getKeyAndValuePairs().put("#", "" + index);
+			vKeysInHeader.addAll( pHeader.getKeyAndValuePairs().keySet() );
+			header.putAll( pHeader.getKeyAndValuePairs() );
+			headerRead = true;
 		}
-*/
 	}
 
 	/**
@@ -308,41 +299,6 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 		String[] keys = mySet.toArray(new String[(mySet.size())]);
 		ToolBox.quicksort(keys, 0, keys.length);
 		return keys;
-	}
-	public static void quicksort(String[] list, int begin, int end) {
-		if (end > begin) {
-			int indexPivot = partition(list, begin, end);
-			quicksort(list, begin, indexPivot);
-			quicksort(list, indexPivot + 1, end);
-		}
-	}
-	private static int partition(String[] list, int begin, int end) {
-		int i;
-		int indexPivot = begin + ((end - begin) / 2);
-		String valuePivot = list[indexPivot];
-		int k = begin;
-		String temp;
-		for (i = begin; i < end; i++) {
-			if (list[i].compareTo(valuePivot) < 0) {
-				temp = list[i];
-				list[i] = list[k];
-				list[k] = temp;
-				if (k == indexPivot) {
-					indexPivot = i;
-				}
-				k++;
-
-			}
-		}
-
-		if (k < end) {
-
-			temp = list[k];
-			list[k] = valuePivot;
-			list[indexPivot] = temp;
-		}
-
-		return k;
 	}
 
 	/**
@@ -582,107 +538,98 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 	 */
 	protected void readImageAsFloatExternal() throws Throwable {
 		synchronized( floatImageBuffer ) {
-			if (!isCached()) {
-				long before = System.currentTimeMillis();
-				PilatusData pData = PilatusLoader.loadPilatus(fullFileName);
-				floatImageBuffer[floatImageBufferPointer] = pData;
-				fileImageBuffer[floatImageBufferPointer] = fullFileName;
-				floatImageBufferI = floatImageBufferPointer;
-				incrementBufferPointer();
-				timeToReadImage = System.currentTimeMillis() - before;
-			} else
-				timeToReadImage = 0;
-			return;
-		}
-/*
-		FableJep fableJep = getFableJep();
-		// First check if the file is cached
-		if (!isCached()) {
-			logger.debug("read file " + fileName);
-			try {
-				long before = System.currentTimeMillis();
-				importFabioModules(fableJep);
-				fableJep.set("filename", fullFileName);
-				fableJep.eval("im = fabio.openimage.openimage(filename)");
-				fableJep.eval("res = im.data.astype(numpy.float32).tostring()");
-				float data[] = (float[]) fableJep.getValue_floatarray("res");
-				// now overwrite data to free memory in python
-				fableJep.eval("res = im.dim1");
-				width = (Integer) fableJep.getValue("res");
-				fableJep.eval("res = im.dim2");
-				// KE: There are not used for anything
-				// long elapsed;
-				// long before_get;
-				height = (Integer) fableJep.getValue("res");
-*/
-				/*
-				 * getting the mean via Python takes too long (approx. 160 ms
-				 * for 2048x2048 image)
-				 */
-				/*
-				 * if (mean == Float.MIN_VALUE) { before_get =
-				 * System.currentTimeMillis(); jep.eval("res = im.getmean()");
-				 * mean = (Float) jep.getValue("res"); elapsed =
-				 * System.currentTimeMillis()-before_get;
-				 * logger.info("fabio.getmean() took "+elapsed+" ms"); }
-				 */
-				/*
-				 * getting the standard deviation via Python takes too long
-				 * (approx. 330 ms for 2048x2048 image)
-				 */
-				/*
-				 * if (stddev == Float.MIN_VALUE) { before_get =
-				 * System.currentTimeMillis(); jep.eval("res = im.getstddev()");
-				 * stddev = (Float) jep.getValue("res"); elapsed =
-				 * System.currentTimeMillis()-before_get;
-				 * logger.info("fabio.getstddev() took "+elapsed+" ms"); }
-				 */
-				// calculate min and max if not done so already
-//				if (minimum == Float.MAX_VALUE || maximum == Float.MIN_VALUE) {
-					/*
-					 * could use fabio to calculate min, max and mean (if we
-					 * assume NumPy is faster than Java) but the data type
-					 * returned is undetermined and therefore I do not know how
-					 * to interpret the result
-					 */
-					/*
-					 * jep.eval("res = im.getmin()"); minimum = (float)
-					 * (Integer)jep.getValue("res");
-					 * jep.eval("res = im.getmax()"); maximum = (float)
-					 * (Integer)jep.getValue("res");
-					 */
-
-					// Java version to calculate minimum and maximum (takes only
-					// 60 ms for 2048x2048 image)
-					// before_get = System.currentTimeMillis();
-/*
-					sum = 0.f;
-					int iMax = data.length;
-					for (int i = 0; i < iMax; i++) {
-						float f = data[i];
-						sum += f;
-						if (f < minimum)
-							minimum = f;
-						if (f > maximum)
-							maximum = f;
-					}
-					mean = sum / (float) (iMax);
-					// elapsed = System.currentTimeMillis() - before_get;
-					// logger.info("java get mean,min.max took "+elapsed+" ms");
-				}
-				floatImageBuffer[floatImageBufferPointer] = data;
-				fileImageBuffer[floatImageBufferPointer] = fullFileName;
-				floatImageBufferI = floatImageBufferPointer;
-				incrementBufferPointer();
-				timeToReadImage = System.currentTimeMillis() - before;
-			} catch (Throwable j) {
-				throw j;
-				// j.printStackTrace();
-			}
-		} else
 			timeToReadImage = 0;
-		return;
+			if (isCached())
+				return;
+			TwoDimFloatArrayData pData = null;
+			long before = System.currentTimeMillis();
+			if( PilatusLoader.supports( fullFileName ) ) {
+				pData = PilatusLoader.loadPilatus(fullFileName);
+			} else {
+				FableJep fableJep = getFableJep();
+				logger.debug("read file " + fileName);
+				try {
+					importFabioModules(fableJep);
+					fableJep.set("filename", fullFileName);
+					fableJep.eval("im = fabio.openimage.openimage(filename)");
+					fableJep.eval("res = im.data.astype(numpy.float32).tostring()");
+					float[] data = fableJep.getValue_floatarray("res");
+					// now overwrite data to free memory in python
+					fableJep.eval("res = im.dim1");
+					int width = (Integer) fableJep.getValue("res");
+					fableJep.eval("res = im.dim2");
+					// KE: There are not used for anything
+					// long elapsed;
+					// long before_get;
+					int height = (Integer) fableJep.getValue("res");
+					pData = new TwoDimFloatArrayData( width, height, data );
+					/*
+					 * getting the mean via Python takes too long (approx. 160 ms
+					 * for 2048x2048 image)
+					 */
+					/*
+					 * if (mean == Float.MIN_VALUE) { before_get =
+					 * System.currentTimeMillis(); jep.eval("res = im.getmean()");
+					 * mean = (Float) jep.getValue("res"); elapsed =
+					 * System.currentTimeMillis()-before_get;
+					 * logger.info("fabio.getmean() took "+elapsed+" ms"); }
+					 */
+					/*
+					 * getting the standard deviation via Python takes too long
+					 * (approx. 330 ms for 2048x2048 image)
+					 */
+					/*
+					 * if (stddev == Float.MIN_VALUE) { before_get =
+					 * System.currentTimeMillis(); jep.eval("res = im.getstddev()");
+					 * stddev = (Float) jep.getValue("res"); elapsed =
+					 * System.currentTimeMillis()-before_get;
+					 * logger.info("fabio.getstddev() took "+elapsed+" ms"); }
+					 */
+					// calculate min and max if not done so already
+	//				if (minimum == Float.MAX_VALUE || maximum == Float.MIN_VALUE) {
+						/*
+						 * could use fabio to calculate min, max and mean (if we
+						 * assume NumPy is faster than Java) but the data type
+						 * returned is undetermined and therefore I do not know how
+						 * to interpret the result
+						 */
+						/*
+						 * jep.eval("res = im.getmin()"); minimum = (float)
+						 * (Integer)jep.getValue("res");
+						 * jep.eval("res = im.getmax()"); maximum = (float)
+						 * (Integer)jep.getValue("res");
+						 */
+	
+						// Java version to calculate minimum and maximum (takes only
+						// 60 ms for 2048x2048 image)
+						// before_get = System.currentTimeMillis();
+/*
+						sum = 0.f;
+						int iMax = data.length;
+						for (int i = 0; i < iMax; i++) {
+							float f = data[i];
+							sum += f;
+							if (f < minimum)
+								minimum = f;
+							if (f > maximum)
+								maximum = f;
+						}
+						mean = sum / (float) (iMax);
+						// elapsed = System.currentTimeMillis() - before_get;
+						// logger.info("java get mean,min.max took "+elapsed+" ms");
 */
+				} catch (Throwable j) {
+					throw j;
+					// j.printStackTrace();
+				}
+			}
+			floatImageBuffer[floatImageBufferPointer] = pData;
+			fileImageBuffer[floatImageBufferPointer] = fullFileName;
+			floatImageBufferI = floatImageBufferPointer;
+			incrementBufferPointer();
+			timeToReadImage = System.currentTimeMillis() - before;
+		}
+		return;
 	}
 
 	/**
@@ -837,9 +784,9 @@ public class FabioFile implements java.lang.Comparable<Object>, IPropertyChangeL
 		}
 
 	}
-/*
+
 	private FableJep getFableJep() throws Throwable {
 		return FableJep.getFableJep();
 	}
-*/
+
 }
