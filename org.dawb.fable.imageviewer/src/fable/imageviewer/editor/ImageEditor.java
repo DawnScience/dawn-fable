@@ -398,7 +398,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, ActionsP
 	private void editorInputChanged() {
 		if (getEditorInput() instanceof MemoryImageEditorInput) {
 			MemoryImageEditorInput miei = (MemoryImageEditorInput)getEditorInput();
-			ImageModel imageModel = new ImageModel("", miei.getWidth(), miei.getHeight(), miei.getFloatArray(), 0);
+			ImageModel imageModel = new ImageModel("", miei.getWidth(), miei.getHeight(), miei.getData(), 0);
 			if ("ExpSimImgInput".equals(getEditorInput().getName())) {
 			} else {
 				System.out.println("First block of received image (imageModel):");
