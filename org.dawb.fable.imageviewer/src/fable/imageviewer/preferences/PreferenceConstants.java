@@ -32,5 +32,6 @@ public class PreferenceConstants {
 	
 	public static final String P_AUTOSCALE  = "fable.imageviewer.preferences.autoScale";
 	public static final String P_KEEPASPECT = "fable.imageviewer.preferences.keepAspectRatio";
+	public static final String P_PSF  = "fable.imageviewer.preferences.psf";
 
 }

@@ -104,7 +104,7 @@ public class ImageViewActions implements IImagesVarKeys {
 
 			@Override
 			public void run() {
-				controls.setLegendShowing(!controls.getLegendShowing());				
+				controls.setLegendShowing(!controls.getLegendShowing());
 				setChecked(controls.getLegendShowing());
 				
 			}
@@ -121,11 +121,12 @@ public class ImageViewActions implements IImagesVarKeys {
 				if (iv == null) {
 					return;
 				}
-				iv.setUserMinimum(iv.getMinimum(), true);
-				iv.setUserMaximum(iv.getMaximum(), true);
-				if(iv.getImage() != null) {
-					iv.getImage().displayImage();
-				}
+				iv.setUserMinimum(iv.getMinimum());
+				iv.setUserMaximum(iv.getMaximum());
+//				if(iv.getImage() != null) {
+					controls.trackedInitAndDisplayImage();
+//					iv.getImage().initAndDisplayImage();
+//				}
 			}
 		};
 		resetMinMaxAction.setToolTipText("Reset the minimum and maximum "

@@ -9,6 +9,8 @@
  */ 
 package fable.imageviewer.model;
 
+import java.awt.Dimension;
+import java.util.Arrays;
 import java.util.EventListener;
 
 import javax.swing.event.EventListenerList;
@@ -19,6 +21,10 @@ import org.dawb.fabio.FabioFile;
 import org.dawb.fabio.FableJep;
 import org.eclipse.swt.graphics.Rectangle;
 
+import org.embl.cca.utils.imageviewer.Histogram;
+import org.embl.cca.utils.imageviewer.Point2DWithValue;
+import org.embl.cca.utils.imageviewer.Statistics;
+
 /**
  * This class implements a simple image model that stores the the width, height,
  * and the pixel data. The data are stored as a float[index] with index = col +
@@ -28,14 +34,14 @@ import org.eclipse.swt.graphics.Rectangle;
  * @author evans
  * 
  */
-public class ImageModel {
+public class ImageModel implements Cloneable {
 	// Note: Change the ImageInfoAction if more fields are added
 	private EventListenerList listenerList = null;
-	private String fileName = null;;
+	private String fileName = null;
 	private int width = 0;
 	private int height = 0;
 	private float[] data = null;
-	private float[] statistics = null;
+	private Statistics statistics = null;
 	private long time;
 
 	// Property change names
@@ -53,7 +59,7 @@ public class ImageModel {
 	/**
 	 * Empty constructor. Sets the listenerList.
 	 */
-	ImageModel() {
+	public ImageModel() {
 		listenerList = new EventListenerList();
 	}
 
@@ -66,7 +72,7 @@ public class ImageModel {
 	 * @param fabioFile
 	 * @throws JepException
 	 */
-	ImageModel(FabioFile fabioFile) throws Throwable {
+	public ImageModel(FabioFile fabioFile) throws Throwable {
 		this();
 		set(fabioFile);
 	}
@@ -84,13 +90,27 @@ public class ImageModel {
 	 * @param data
 	 * @param time
 	 */
-	ImageModel(String fileName, int width, int height, float[] data, long time) {
+	public ImageModel(String fileName, int width, int height, float[] data, long time) {
 		this();
 		reset(fileName, width, height, data);
 		this.time = time;
 	}
 
-	/**
+    public ImageModel clone() {
+    	ImageModel clone = new ImageModel();
+		if( fileName != null )
+			clone.fileName = fileName;
+		clone.width = width;
+		clone.height = height;
+		if( data != null )
+			clone.data = data.clone();
+		if( statistics != null )
+			clone.statistics = statistics.clone();
+		clone.time = time;
+    	return clone;
+    }
+
+    /**
 	 * Adds the listener.
 	 * 
 	 * @param l
@@ -151,7 +171,7 @@ public class ImageModel {
 		try {
 			statistics = null;
 			this.fileName = fabioFile.getFileName();
-			this.data     = fabioFile.getImageAsFloat(FableJep.getFableJep());
+			this.data     = fabioFile.getImageAsFloat();
 			this.width    = fabioFile.getWidth();
 			this.height   = fabioFile.getHeight();
 			this.time     = fabioFile.getTimeToReadImage();
@@ -218,9 +238,10 @@ public class ImageModel {
 	 * Get the statistics (min, max, mean) for the whole image. The values are
 	 * cached after the first time they are calculated.
 	 * 
-	 * @return The statistics as float[3] = {min, max, mean}.
+	 * @return The statistics
+	 * @remark as float[3] = {min, max, mean}.
 	 */
-	public float[] getStatistics() {
+	public Statistics getStatistics() {
 		if (statistics == null) {
 			calculateStatistics();
 		}
@@ -232,24 +253,100 @@ public class ImageModel {
 	 * calculated each time this method is called.
 	 * 
 	 * @param rect
-	 * @return The statistics as float[3] = {min, max, mean}.
+	 * @return The statistics
+	 * @remark as float[3] = {min, max, mean}.
 	 */
-	public float[] getStatistics(Rectangle rect) {
-		float min = Float.MAX_VALUE;
-		float max = -Float.MAX_VALUE;
-		float mean = 0.0f;
-		float sum = 0.0f;
-		float val;
+	public Statistics getStatistics(Rectangle rect) {
+		final Dimension dataDim = new Dimension( width, height );
+		Statistics minMaxMean = Statistics.calculateMinMaxMean( data, dataDim, rect, false );
+
+		final int binAmountMax = 0x100000; 
+//		float[] normData = minMaxMean.normalize( data, dataDim, rect, binAmountMax ); //Maybe in the future
+
+		/**
+		 * Creating a histogram for a wide range, that is binAmountMax bins.
+		 * To make it fast, array is used which takes a lot of space. Then it
+		 * is packed in a dynamic histogram.
+		 * How? Using a binWidthMax and binHeightLimiter (anyway binWidthMin=1).
+		 * If adding next bin to this bin would exceed binHeightLimiter, then next bin
+		 * must be a separated bin, and this bin is closed. However if adding does
+		 * not exceed binAmountLimiter, but the united binWidth would exceed binWidthMax,
+		 * then next bin must be a separated bin, and this bin is closed.
+		 * For example, binWidthMax = binAmountMax/100, binHeightLimiter = binAmountMax/binWidthMax.
+		 * To store this dynamic histogram, the min and max of bin, and amount of values
+		 * in that bin must be stored for each bin. Searching a bin can be done by binary
+		 * search, assuming the bins are stored ordered.
+		 */
+		float min = minMaxMean.getMinimum();
+		int[] histogram = new int[ (int) ( minMaxMean.getMaximum() - min + 1 ) ];
 		for (int j = 0; j < rect.height; j++) {
+			int xyOffset = (rect.y + j) * width + rect.x; 
 			for (int i = 0; i < rect.width; i++) {
-				val = data[rect.x + i + (rect.y + j) * width];
-				sum += val;
-				if (val < min) min = val;
-				if (val > max) max = val;
+				histogram[ (int)( data[ xyOffset++ ] - min ) ]++;
 			}
 		}
-		mean = sum / (rect.width * rect.height);
-		return new float[] { min, max, mean };
+		// Creating histogram
+		// At most 1% of maximum amount of bins can be the bin width
+		final int binWidthMax = binAmountMax / 100; //Value by experience
+		// The preferred bin size
+		final int binHeightLimiter = binAmountMax / binWidthMax; //Expression by experience
+		int binIndex = 0;
+		int binStart = 0;
+//		int binValueAmount = 0;
+		Point2DWithValue[] dynHistogram = null;
+		dynHistogram = new Point2DWithValue[ histogram.length ];
+		int sum = 0;
+		int iH;
+		for( iH = 0; iH < histogram.length; iH++ ) {
+			int val = histogram[ iH ];
+			if( ( sum > 0 && sum + val > binHeightLimiter ) || iH - binStart > binWidthMax ) {
+				dynHistogram[ binIndex++ ] = new Point2DWithValue( binStart, iH - 1, sum );
+				binStart = iH;
+				sum = val;
+			} else
+				sum += val;
+		}
+		dynHistogram[ binIndex++ ] = new Point2DWithValue( binStart, iH - 1, sum );
+		Point2DWithValue[] dynHistogramPacked = new Point2DWithValue[ binIndex ];
+		System.arraycopy( dynHistogram, 0, dynHistogramPacked, 0, binIndex );
+
+		/**
+		 */
+		// Searching for the 1% (but >=valueAmountMin) of values to be highlighted by PSF
+		final int valueAmountTotal = rect.width * rect.height;
+		final int valueAmountMin = 10000; //Value by experience
+		int valueAmountMax = Math.max( valueAmountTotal / 100, valueAmountMin );
+		int valueAmountPartial = 0;
+		for( iH = dynHistogramPacked.length - 1; iH >= 0; iH-- ) {
+			valueAmountPartial += dynHistogramPacked[ iH ].z;
+			if( valueAmountPartial > valueAmountMax )
+				break;
+		}
+		if( iH >= 0 )
+			valueAmountPartial -= dynHistogramPacked[ iH ].z;
+		Point2DWithValue[] psfPoints = new Point2DWithValue[ valueAmountPartial ];
+		// Searching for the values >= highlightValueMin to be highlighted by PSF
+		if( iH + 1 < dynHistogramPacked.length ) { //else way too many values in last bin
+			float highlightValueMin = dynHistogramPacked[ iH + 1 ].x + minMaxMean.getMinimum();
+			iH = 0;
+			for( int j = 0; j < rect.height; j++ ) {
+				int xyOffset = (rect.y + j) * width + rect.x; 
+				for( int i = 0; i < rect.width; i++ ) {
+					float val = data[ xyOffset++ ];
+					if( val >= highlightValueMin ) {
+						psfPoints[ iH++ ] = new Point2DWithValue( i, j, val );
+					}
+				}
+			}
+		}
+
+		Arrays.sort( psfPoints );
+		//TODO passing dynHistogram instead of(?) histogram
+		float binWidth = 0; //TODO Set value, Width of bins
+		minMaxMean.setHistogram( new Histogram( histogram, minMaxMean.getMinimum(), binWidth, valueAmountTotal ) );
+		minMaxMean.setPSFPoints( psfPoints );
+		minMaxMean.setReadOnly( true );
+		return minMaxMean;
 	}
 
 	/**
@@ -333,4 +430,21 @@ public class ImageModel {
 		return time;
 	}
 
+	//Assuming the width and height is same in this and in imageModel
+	public void addImageModel( ImageModel imageModel ) {
+		float[] fthisdata = getData();
+		float[] fdata = imageModel.getData();
+		int jMax = Math.min( fthisdata.length, fdata.length ); //If assumption is right, the two lengths are same
+		for( int j = 0; j < jMax; j++ )
+			fthisdata[j] += fdata[j];
+	}
+
+	//Assuming the width and height is same in this and in imageModel
+	public void subImageModel( ImageModel imageModel ) {
+		float[] fsetdata = getData();
+		float[] fdata = imageModel.getData();
+		int jMax = Math.min( fsetdata.length, fdata.length ); //If assumption is right, the two lengths are same
+		for( int j = 0; j < jMax; j++ )
+			fsetdata[j] -= fdata[j];
+	}
 }

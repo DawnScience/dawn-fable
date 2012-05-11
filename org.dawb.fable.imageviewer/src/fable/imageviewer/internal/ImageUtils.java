@@ -14,7 +14,7 @@ import java.util.Vector;
 import jep.JepException;
 
 import org.dawb.fabio.FabioFile;
-import org.dawb.fabio.FableJep;
+//import org.dawb.fabio.FableJep;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -75,9 +75,9 @@ public class ImageUtils {
 				Vector<Integer> selectedFiles = SampleNavigatorView.view
 						.getSelectedFilesIndex();
 				monitor.beginTask("Make 1D Slice", selectedFiles.size());
-				FableJep fableJep;
+//				FableJep fableJep;
 				try {
-					fableJep = FableJep.getFableJep();
+//					fableJep = FableJep.getFableJep();
 					final int imageWidth = selectedFiles.size();
 					final int imageHeight;
 					int lineZLength = Math.abs(z2 - z1);
@@ -95,7 +95,7 @@ public class ImageUtils {
 						try {
 							line = SelectLine(fabioFiles.elementAt(
 									selectedFiles.elementAt(i))
-									.getImageAsFloat(fableJep), fabioFiles
+									.getImageAsFloat(), fabioFiles
 									.elementAt(selectedFiles.elementAt(i))
 									.getWidth(), fabioFiles.elementAt(
 									selectedFiles.elementAt(i)).getHeight(),
@@ -109,7 +109,7 @@ public class ImageUtils {
 						}
 						monitor.worked(1);
 					}
-					fableJep.close();
+//					fableJep.close();
 					final float[] _sliceImage = sliceImage;
 					Display.getDefault().asyncExec(new Runnable() {
 						public void run() {
@@ -173,11 +173,11 @@ public class ImageUtils {
 				monitor.beginTask("Read " + selectedFiles.size()
 						+ " files and select area [" + y1 + "," + z1 + "] to ["
 						+ y2 + "," + z2 + "] ...", selectedFiles.size());
-				FableJep fableJep;
+//				FableJep fableJep;
 				Logger logger = FableLogger
 						.getLogger((Class<?>) ImageUtils.class);
 				try {
-					fableJep = FableJep.getFableJep();
+//					fableJep = FableJep.getFableJep();
 					int selectedWidth, selectedHeight;
 					selectedWidth = Math.abs(y2 - y1);
 					selectedHeight = Math.abs(z2 - z1);
@@ -201,7 +201,7 @@ public class ImageUtils {
 											.getFileName() + " ...");
 							area = SelectArea(fabioFiles.elementAt(
 									selectedFiles.elementAt(i))
-									.getImageAsFloat(fableJep), fabioFiles
+									.getImageAsFloat(), fabioFiles
 									.elementAt(selectedFiles.elementAt(i))
 									.getWidth(), fabioFiles.elementAt(
 									selectedFiles.elementAt(i)).getHeight(),
@@ -220,7 +220,7 @@ public class ImageUtils {
 						}
 						monitor.worked(1);
 					}
-					fableJep.close();
+//					fableJep.close();
 					final float[] _sliceImage = sliceImage;
 					Display.getDefault().asyncExec(new Runnable() {
 						public void run() {
