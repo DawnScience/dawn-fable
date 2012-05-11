@@ -8,7 +8,8 @@ Bundle-Vendor: Diamond Ltd.
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.dawb.jep;bundle-version="1.0.0",
- org.embl.cca.utils.loaders;bundle-version="1.0.0"
+ org.embl.cca.utils.loaders;bundle-version="1.0.0",
+ org.embl.cca.utils;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Import-Package: fable.framework.toolbox,
