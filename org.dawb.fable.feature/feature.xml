@@ -113,6 +113,8 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <import plugin="com.springsource.slf4j.api"/>
       <import plugin="uk.ac.diamond.scisoft.deprecated"/>
       <import plugin="uk.ac.gda.common"/>
+      <import plugin="org.eclipse.ui.ide"/>
+      <import plugin="org.dawb.common.services"/>
    </requires>
 
    <plugin
