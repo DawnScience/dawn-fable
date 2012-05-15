@@ -63,7 +63,7 @@ public class LineView extends ViewPart {
 		super();
 		controller = SampleController.getController();
 		try {
-	        this.plottingSystem = PlottingFactory.getPlottingSystem();
+	        this.plottingSystem = PlottingFactory.createPlottingSystem();
 	        plottingSystem.setColorOption(ColorOption.NONE);
 	        plottingSystem.setDatasetChoosingRequired(false);
 		} catch (Exception ne) {

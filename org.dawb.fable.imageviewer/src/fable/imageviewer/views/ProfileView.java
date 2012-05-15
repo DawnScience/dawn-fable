@@ -55,10 +55,10 @@ public class ProfileView extends ViewPart {
 	public ProfileView() {
 		super();
 		try {
-	        this.plottingSystem_x = PlottingFactory.getPlottingSystem();
+	        this.plottingSystem_x = PlottingFactory.createPlottingSystem();
 	        plottingSystem_x.setColorOption(ColorOption.NONE);
 	        plottingSystem_x.setDatasetChoosingRequired(false);
-	        this.plottingSystem_y = PlottingFactory.getPlottingSystem();
+	        this.plottingSystem_y = PlottingFactory.createPlottingSystem();
 	        plottingSystem_y.setColorOption(ColorOption.NONE);
 	        plottingSystem_y.setDatasetChoosingRequired(false);
 		} catch (Exception ne) {
