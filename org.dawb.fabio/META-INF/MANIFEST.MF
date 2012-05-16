@@ -4,7 +4,7 @@ Bundle-Name: Fabio
 Bundle-SymbolicName: org.dawb.fabio
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: org.dawb.fabio.Activator
-Bundle-Vendor: Diamond Ltd.
+Bundle-Vendor: Diamond Light Source
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.dawb.jep;bundle-version="1.0.0",
