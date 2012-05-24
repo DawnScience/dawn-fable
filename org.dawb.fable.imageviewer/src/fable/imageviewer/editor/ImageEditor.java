@@ -401,6 +401,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, ActionsP
 			ImageModel imageModel = new ImageModel("", miei.getWidth(), miei.getHeight(), miei.getData(), 0);
 			if ("ExpSimImgInput".equals(getEditorInput().getName())) {
 			} else {
+/*
 				System.out.println("First block of received image (imageModel):");
 				for( int j = 0; j < 10; j++ ) {
 					for( int i = 0; i < 10; i++ ) {
@@ -408,6 +409,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, ActionsP
 					}
 					System.out.println();
 				}
+*/
 			}
 			createPlot(imageModel);
 		} else {
