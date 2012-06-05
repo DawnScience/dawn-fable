@@ -3057,6 +3057,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 	}
 
 	protected void setSelection(Rectangle rect) {
-		iv.getParentPart().getSite().getSelectionProvider().setSelection( new FableSelection( screenRectangleToImageRectangle( rect, true ) ) );
+		if( imageData != null )
+			iv.getParentPart().getSite().getSelectionProvider().setSelection( new FableSelection( screenRectangleToImageRectangle( rect, true ) ) );
 	}
 }
