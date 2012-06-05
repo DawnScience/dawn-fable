@@ -18,6 +18,11 @@ import javax.sound.sampled.Line;
 import javax.swing.border.LineBorder;
 
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ISelectionProvider;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
@@ -69,7 +74,10 @@ import fable.imageviewer.internal.ZoomSelection;
 import fable.imageviewer.model.ImageModel;
 import fable.imageviewer.model.ImageModelFactory;
 import fable.imageviewer.preferences.PreferenceConstants;
+
+import org.embl.cca.utils.imageviewer.FableSelection;
 import org.embl.cca.utils.imageviewer.ImageDataUpscale;
+import org.embl.cca.utils.imageviewer.ListenerList;
 import org.embl.cca.utils.imageviewer.Statistics;
 import fable.imageviewer.rcp.Activator;
 import fable.imageviewer.component.PSF;
@@ -488,6 +496,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 						selectionHeight=tempHeight;
 						selectedArea.width=tempWidthArea;
 						selectedArea.height=tempHeightArea;
+						setSelection(selectedArea);
 						
 					}
 					
@@ -527,6 +536,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 						selectionHeight=tempHeight;
 						selectedArea.width=tempWidthArea;
 						selectedArea.height=tempHeightArea;
+						setSelection(selectedArea);
 		
 					}
 				
@@ -564,6 +574,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 							System.out.printf("  \"%s\"\n", iv.getPartName());
 						}
 						showSelection(false); //redraw the canvas each moves			
+						setSelection(selectedArea);
 					}		
 					
 					else if(clickonselection && (iv.getZoomSelection() == ZoomSelection.RELIEF)){
@@ -609,6 +620,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 							imageCanvasGC.drawRectangle(selectedArea);
 							imageCanvasGC.setXORMode(false);
 						}
+						setSelection(selectedArea);
 						
 					}
 				}			
@@ -778,6 +790,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 							System.out.printf("  \"%s\"\n", iv.getPartName());
 						}
 						showSelection(false);
+						setSelection(selectedArea);
 					
 				 }
 					
@@ -811,6 +824,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 							System.out.printf("  \"%s\"\n", iv.getPartName());
 						}
 						showSelection(false);
+						setSelection(selectedArea);
 					
 					}
 				 
@@ -844,6 +858,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 							System.out.printf("  \"%s\"\n", iv.getPartName());
 						}
 						showSelection(false);
+						setSelection(selectedArea);
 					
 					}
 				 
@@ -879,6 +894,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 							System.out.printf("  \"%s\"\n", iv.getPartName());
 						}
 						showSelection(false);
+						setSelection(selectedArea);
 					
 					}
 				 
@@ -3040,4 +3056,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 		this.selectedRectangle = selectedRectangle;
 	}
 
+	protected void setSelection(Rectangle rect) {
+		iv.getParentPart().getSite().getSelectionProvider().setSelection( new FableSelection( screenRectangleToImageRectangle( rect, true ) ) );
+	}
 }
