@@ -267,8 +267,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 		// Create the menus
 		contributeToActionBars();
 		createContextMenu();
-		iv.getParentPart().getSite().getWorkbenchWindow().getSelectionService()
-				                               .addSelectionListener(iv);
+		iv.getParentPart().getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(iv);
 		
 	}
 	
