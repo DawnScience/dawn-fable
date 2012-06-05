@@ -49,6 +49,8 @@ import fable.imageviewer.internal.ZoomSelection;
 import fable.imageviewer.model.ImageModel;
 import fable.imageviewer.model.ImageModelFactory;
 import fable.imageviewer.preferences.PreferenceConstants;
+
+import org.embl.cca.utils.imageviewer.FableSelectionProvider;
 import org.embl.cca.utils.imageviewer.Statistics;
 import fable.imageviewer.rcp.Activator;
 import fable.imageviewer.views.ImageView;
@@ -316,8 +318,8 @@ public class ImageComponent implements IPropertyChangeListener,
 		// logger = FableLogger.getLogger(this.getClass());
 		controls = new ImageComponentUI(this);
 		controls.setStatusLabel(statusLabel);
+		getParentPart().getSite().setSelectionProvider(new FableSelectionProvider()); //Set this before createControls, because it adds listener to this
 		controls.createControls(parent);
-
 	}
 
 	/*
@@ -740,6 +742,7 @@ public class ImageComponent implements IPropertyChangeListener,
 		if (image != null) {
 			image.dispose();
 		}
+		getParentPart().getSite().setSelectionProvider(null);
 		// Remove this instance from the controller's listener list. It doesn't
 		// matter if it is not there for this instance.
 		controller.removePropertyChangeListener(this);
@@ -749,8 +752,7 @@ public class ImageComponent implements IPropertyChangeListener,
 			workbenchListener = null;
 		}
 		if (parentPart.getSite() != null) {
-			parentPart.getSite().getWorkbenchWindow().getSelectionService()
-					.removeSelectionListener(this);
+			parentPart.getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(this);
 		}
 		if (controls!=null) controls.dispose();
 	}
