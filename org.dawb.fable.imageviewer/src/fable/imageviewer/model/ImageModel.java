@@ -11,12 +11,7 @@ package fable.imageviewer.model;
 
 import java.awt.Dimension;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.EventListener;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.RandomAccess;
 import java.util.Vector;
 
 import javax.swing.event.EventListenerList;
@@ -30,10 +25,9 @@ import org.embl.cca.utils.imageviewer.Histogram;
 import org.embl.cca.utils.imageviewer.PointWithValueFFF;
 import org.embl.cca.utils.imageviewer.PointWithValueIIF;
 import org.embl.cca.utils.imageviewer.QuickSort;
+import org.embl.cca.utils.imageviewer.RangeWithValuesFFV;
 import org.embl.cca.utils.imageviewer.Statistics;
 import org.slf4j.Logger;
-
-import fable.imageviewer.component.ImageComponentImage;
 
 /**
  * This class implements a simple image model that stores the the width, height,
@@ -280,15 +274,15 @@ public class ImageModel implements Cloneable {
      *	       that this guarantees that the return value will be &gt;= 0 if
      *	       and only if the key is found.
      */
-	public int searchBin( Vector<PointWithValueFFF> bins, float key ) {
+	public int searchBin( Vector<RangeWithValuesFFV<Float>> bins, float key ) {
 		int low = 0;
 		int high = bins.size() - 1;
         while (low <= high) {
             int mid = (low + high) >>> 1;
-            if( key < bins.get(mid).x )
+            if( key < bins.get(mid).rangeStart )
                 high = mid - 1;
             else {
-            	if( key > bins.get(mid).y )
+            	if( key >= bins.get(mid).rangeEnd )
             		low = mid + 1;
             	else
             		return mid; // key found
@@ -296,7 +290,7 @@ public class ImageModel implements Cloneable {
         }
         return -(low + 1);  // key not found
 	}
-/*
+
 	public Statistics getStatistics(Rectangle rect) {
 		final Logger logger = org.slf4j.LoggerFactory.getLogger(ImageModel.class);
 		Rectangle imageRect = new Rectangle( 0, 0, width, height );
@@ -318,31 +312,87 @@ public class ImageModel implements Cloneable {
 		}
 
 		long t1 = System.nanoTime();
-		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
 		float[] sortedData = QuickSort.sort( rectData );
 		long t2 = System.nanoTime();
-		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+//		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
 
 //		final Dimension dataDim = new Dimension( width, height );
 		Statistics minMaxMean = new Statistics( sortedData[0], sortedData[sortedData.length - 1], sum / sortedData.length, false );
-
 		final int binAmountMax = 100; 
-		Vector<PointWithValueFFF> bins = new Vector<PointWithValueFFF>(binAmountMax);
-		bins.add( new PointWithValueFFF(Float.MIN_VALUE, Float.MAX_VALUE, 0) );
+		final int binHeightLimiter = Math.max( rectData.length / binAmountMax, 1 ); //Expression by experience
+
+		// Creating histogram
+		// At most 1% of maximum amount of bins can be the bin width
+//		final int binWidthMax = binAmountMax / 100; //Value by experience
+		// The preferred bin size
+		int binIndex = 0;
+		int binStart = 0;
+//		int binValueAmount = 0;
+		PointWithValueFFF[] dynHistogram = new PointWithValueFFF[ rectData.length ];
+		int sumBins = 0;
+		int sumBinsPrev = 0;
+		int prevIH = 0;
+		int iHMax = rectData.length;
+		int iH;
+		for( iH = 0; iH < iHMax; iH++ ) {
+			if( sortedData[ iH ] != sortedData[ prevIH ] ) {
+				prevIH = iH - 1;
+				sumBinsPrev = sumBins;
+			}
+			final int val = 1;
+			if( ( sumBinsPrev > 0 && sumBins + val > binHeightLimiter ) ) {
+				dynHistogram[ binIndex++ ] = new PointWithValueFFF( sortedData[ binStart ], sortedData[ prevIH ], sumBinsPrev );
+				binStart = iH;
+				prevIH = iH;
+				sumBinsPrev = 0;
+				sumBins = val;
+			} else
+				sumBins += val;
+		}
+		dynHistogram[ binIndex++ ] = new PointWithValueFFF( sortedData[ binStart ], sortedData[ iH - 1 ], sumBins );
+		PointWithValueFFF[] dynHistogramPacked = new PointWithValueFFF[ binIndex ];
+		System.arraycopy( dynHistogram, 0, dynHistogramPacked, 0, binIndex );
+//		for( int g = 0; g < dynHistogramPacked.length; g++ )
+//			System.out.println( "DHP[" + g + "] = " + dynHistogramPacked[ g ].toString() );
+/*
+		Vector<RangeWithValuesFFV<Float>> bins = new Vector<RangeWithValuesFFV<Float>>(binAmountMax);
+		bins.add( new RangeWithValuesFFV<Float>(Float.MIN_VALUE, Float.MAX_VALUE, binHeightLimiter + 1 ) );
 		iMax = constrained.width;
 		jMax = constrained.height;
 		for( int j = 0; j < jMax; j++ ) {
-			int xyOffset = j * width; 
+			int xyOffset = j * constrained.width; 
 			for ( int i = 0; i < iMax; i++ ) {
-				int binIndex = searchBin(bins, rectData[ xyOffset++ ]);
-				PointWithValueFFF bin = bins.get(binIndex);
-				bins.get(binIndex).z++;
-				if( )
+				float curData = rectData[ xyOffset++ ];
+				int binIndex = searchBin( bins, curData ); //We are sure it finds a bin
+				RangeWithValuesFFV<Float> bin = bins.get(binIndex);
+				bin.values.add(new Float(curData));
+				int binSize = bin.values.size();
+				int binHalfSize = ( binSize + 1 ) >>> 1;
+				if( ( binSize % binHeightLimiter ) == 0 ) { //Split the bin
+					QuickSort.sortInItself( bin.values );
+					int findHalf = -1;
+					Float fPrev = 0f;
+					while( ++findHalf < binSize ) {
+						Float f = bin.values.get( findHalf );
+						if( findHalf >= binHalfSize && f != fPrev )
+							break;
+						fPrev = f;
+					}
+					if( findHalf < binSize ) {
+						RangeWithValuesFFV<Float> binNew = new RangeWithValuesFFV<Float>(bin.values.get( findHalf ), bin.rangeEnd, binHeightLimiter ); 
+						bins.insertElementAt( binNew, binIndex + 1 );
+						while( binSize > findHalf++ ) {
+							Float f = bin.values.remove( 0 );
+							binNew.values.add( f );
+							findHalf++;
+						}
+						bin.rangeEnd = binNew.rangeStart;
+					}
+				}
 			}
 		}
-		long t3 = System.nanoTime();
-		logger.debug( "binning.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
-		
+*/		
 
 //		float min = minMaxMean.getMinimum();
 //		int[] histogram = new int[ (int) ( minMaxMean.getMaximum() - min + 1 ) ];
@@ -353,12 +403,51 @@ public class ImageModel implements Cloneable {
 //			}
 //		}
 
-//		minMaxMean.setHistogram( new Histogram( histogram, minMaxMean.getMinimum(), binWidth, valueAmountTotal ) );
-//		minMaxMean.setPSFPoints( psfPoints );
+		/**
+		 */
+		// Searching for the 1% (but >=valueAmountMin) of values to be highlighted by PSF
+		final int valueAmountTotal = rect.width * rect.height;
+		final int valueAmountMin = 10000; //Value by experience
+		int valueAmountMax = Math.max( valueAmountTotal / 100, valueAmountMin );
+		int valueAmountPartial = 0;
+		for( iH = dynHistogramPacked.length - 1; iH >= 0; iH-- ) {
+			valueAmountPartial += dynHistogramPacked[ iH ].z;
+			if( valueAmountPartial > valueAmountMax )
+				break;
+		}
+		if( iH >= 0 )
+			valueAmountPartial -= dynHistogramPacked[ iH ].z;
+		PointWithValueIIF[] psfPoints = new PointWithValueIIF[ valueAmountPartial ];
+		// Searching for the values >= highlightValueMin to be highlighted by PSF
+		if( iH + 1 < dynHistogramPacked.length ) { //else way too many values in last bin
+			float highlightValueMin = dynHistogramPacked[ iH + 1 ].x;
+			iH = 0;
+			for( int j = 0; j < rect.height; j++ ) {
+				int xyOffset = (rect.y + j) * width + rect.x; 
+				for( int i = 0; i < rect.width; i++ ) {
+					float val = data[ xyOffset++ ];
+					if( val >= highlightValueMin ) {
+						try {
+						psfPoints[ iH++ ] = new PointWithValueIIF( i, j, val );
+						} catch( Exception e ) {
+							int aaa = 0;
+						}
+					}
+				}
+			}
+		}
+
+		long t3 = System.nanoTime();
+//		logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		Arrays.sort( psfPoints );
+		//TODO passing dynHistogram instead of(?) histogram
+		float binWidth = 0; //TODO Set value, Width of bins
+		minMaxMean.setHistogram( new Histogram( null, minMaxMean.getMinimum(), binWidth, valueAmountTotal ) );
+		minMaxMean.setPSFPoints( psfPoints );
 		minMaxMean.setReadOnly( true );
 		return minMaxMean;
 	}
-*/
+
 	/**
 	 * Get the statistics (min, max, mean) for a sub Rectangle. These are
 	 * calculated each time this method is called.
@@ -367,7 +456,7 @@ public class ImageModel implements Cloneable {
 	 * @return The statistics
 	 * @remark as float[3] = {min, max, mean}.
 	 */
-	public Statistics getStatistics(Rectangle rect) {
+	public Statistics getStatisticsPrev(Rectangle rect) {
 		final Dimension dataDim = new Dimension( width, height );
 		Statistics minMaxMean = Statistics.calculateMinMaxMean( data, dataDim, rect, false );
 
