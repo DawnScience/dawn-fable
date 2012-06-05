@@ -2,7 +2,7 @@ package fable.imageviewer.component;
 
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.embl.cca.utils.imageviewer.Point2DWithValue;
+import org.embl.cca.utils.imageviewer.PointWithValueIIF;
 
 import fable.imageviewer.component.ImageComponent;
 
@@ -90,7 +90,7 @@ public class PSF {
 //		System.arraycopy( imageValues, 0, newImageValues, 0, imageValues.length );
 
 		do {
-			Point2DWithValue[] PSFPoints = imageComponent.getStatistics().getPSFPoints();
+			PointWithValueIIF[] PSFPoints = imageComponent.getStatistics().getPSFPoints();
 			if( !imageComponent.isPSFOn() || PSFPoints.length == 0 )
 				break;
 			final int kernelMaxValue = kernel[ kernelCenter ][ kernelCenter ];
