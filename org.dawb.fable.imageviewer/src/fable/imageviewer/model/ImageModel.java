@@ -300,25 +300,77 @@ public class ImageModel implements Cloneable {
 		float[] rectData = new float[ constrained.width * constrained.height ];
 		int d = 0;
 		int s = constrained.y * width + constrained.x;
+		float min = Float.MAX_VALUE;
+		float max = -Float.MAX_VALUE;
 		float sum = 0.0f;
 		long t0 = System.nanoTime();
+		//Copying data of selected rectangle, in the meantime calculating statistics
 		for( int j = constrained.y; j < jMax; j++ ) {
 			int sj = s;
 			for( int i = constrained.x; i < iMax; i++ ) {
-				sum += data[ s ];
-				rectData[ d++ ] = data[ s++ ];
+				float val = data[ s++ ];
+				rectData[ d++ ] = val;
+				sum += val;
+				if (val < min) min = val;
+				if (val > max) max = val;
 			}
 			s = sj + width;
 		}
 
 		long t1 = System.nanoTime();
 //		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
-		float[] sortedData = QuickSort.sort( rectData );
+		final int topAmountMin = 100000; //Value by experience
+		int topAmount = Math.min( Math.max( (int)( rectData.length * 0.1f ), topAmountMin ), rectData.length ); //The top 10% of points will be PSF-ed, anyway this could be configurable
+		int topFrom = rectData.length - topAmount;
+//		float[] sortedData = QuickSort.sort( rectData );
+		float[] sortedData = QuickSort.sortTop( rectData, topFrom );
 		long t2 = System.nanoTime();
-//		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		float topFromValue = sortedData[ topFrom ]; 
+		//Find first other than value@topFrom, because there can be more value@topFrom below topFrom we do not count
+		while( topFrom < rectData.length && sortedData[ topFrom ] == topFromValue )
+			topFrom++;
+		topAmount = rectData.length - topFrom;
 
+		for( int i = topFrom + 1; i < sortedData.length; i++ )
+			if( sortedData[ i - 1 ] > sortedData[ i ] )
+				System.out.println( "QuickSort failure!" );
+			
 //		final Dimension dataDim = new Dimension( width, height );
-		Statistics minMaxMean = new Statistics( sortedData[0], sortedData[sortedData.length - 1], sum / sortedData.length, false );
+		Statistics minMaxMean = new Statistics( min, max, sum / sortedData.length, false );
+
+		PointWithValueIIF[] psfPoints = new PointWithValueIIF[ topAmount ];
+		if( topAmount > 0 ) {
+			final float highlightValueMin = sortedData[ topFrom ];
+			// Searching for the values >= highlightValueMin to be highlighted by PSF
+			int iH = 0;
+			iMax = constrained.width;
+			jMax = constrained.height;
+			for( int j = 0; j < jMax; j++ ) {
+				int xyOffset = (constrained.y + j) * width + constrained.x; 
+				for( int i = 0; i < iMax; i++ ) {
+					float val = data[ xyOffset++ ];
+					if( val >= highlightValueMin ) {
+//						try {
+							psfPoints[ iH++ ] = new PointWithValueIIF( i, j, val );
+//						} catch( Exception e ) {
+//							int aaa = 0;
+//						}
+					}
+				}
+			}
+		}
+		long t3 = System.nanoTime();
+//		logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		Arrays.sort( psfPoints );
+		final int valueAmountTotal = constrained.width * constrained.height;
+		//TODO passing dynHistogram instead of(?) histogram
+		float binWidth = 0; //TODO Set value, Width of bins
+		minMaxMean.setHistogram( new Histogram( null, minMaxMean.getMinimum(), binWidth, valueAmountTotal ) );
+		minMaxMean.setPSFPoints( psfPoints );
+		minMaxMean.setReadOnly( true );
+		return minMaxMean;
+/*
 		final int binAmountMax = 100; 
 		final int binHeightLimiter = Math.max( rectData.length / binAmountMax, 1 ); //Expression by experience
 
@@ -355,7 +407,7 @@ public class ImageModel implements Cloneable {
 		System.arraycopy( dynHistogram, 0, dynHistogramPacked, 0, binIndex );
 //		for( int g = 0; g < dynHistogramPacked.length; g++ )
 //			System.out.println( "DHP[" + g + "] = " + dynHistogramPacked[ g ].toString() );
-/*
+
 		Vector<RangeWithValuesFFV<Float>> bins = new Vector<RangeWithValuesFFV<Float>>(binAmountMax);
 		bins.add( new RangeWithValuesFFV<Float>(Float.MIN_VALUE, Float.MAX_VALUE, binHeightLimiter + 1 ) );
 		iMax = constrained.width;
@@ -392,7 +444,7 @@ public class ImageModel implements Cloneable {
 				}
 			}
 		}
-*/		
+		
 
 //		float min = minMaxMean.getMinimum();
 //		int[] histogram = new int[ (int) ( minMaxMean.getMaximum() - min + 1 ) ];
@@ -403,8 +455,6 @@ public class ImageModel implements Cloneable {
 //			}
 //		}
 
-		/**
-		 */
 		// Searching for the 1% (but >=valueAmountMin) of values to be highlighted by PSF
 		final int valueAmountTotal = rect.width * rect.height;
 		final int valueAmountMin = 10000; //Value by experience
@@ -446,6 +496,7 @@ public class ImageModel implements Cloneable {
 		minMaxMean.setPSFPoints( psfPoints );
 		minMaxMean.setReadOnly( true );
 		return minMaxMean;
+*/
 	}
 
 	/**
