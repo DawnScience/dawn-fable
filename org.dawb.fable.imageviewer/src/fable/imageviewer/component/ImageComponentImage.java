@@ -63,6 +63,7 @@ import org.eclipse.ui.IViewReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.EditorPart;
 import org.slf4j.Logger;
 
 import fable.framework.logging.FableLogger;
@@ -3058,6 +3059,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 
 	protected void setSelection(Rectangle rect) {
 		if( imageData != null )
-			iv.getParentPart().getSite().getSelectionProvider().setSelection( new FableSelection( screenRectangleToImageRectangle( rect, true ) ) );
+			iv.getParentPart().getSite().getSelectionProvider().setSelection(
+				new FableSelection( screenRectangleToImageRectangle( rect, true ), (EditorPart)iv.getParentPart() ) );
 	}
 }
