@@ -590,6 +590,8 @@ public class ImageComponent implements IPropertyChangeListener,
 				imageModel.getHeight(), imageDiffArray);
 		// TODO: KE: Consider keeping the full statistics so the zoomed
 		// image looks the same as the unzoomed
+		// TODO: GN: Also not calculating the statistics each time would
+		// make it a bit faster
 		zoomStatistics = imageDiffModel.getStatistics(image.getImageRect());
 		long elapsed = System.currentTimeMillis() - start;
 		updateStatusLabel(getFileName() + " - " + fileNameSaved + " took "
