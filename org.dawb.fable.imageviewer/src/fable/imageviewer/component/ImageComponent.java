@@ -949,7 +949,7 @@ public class ImageComponent implements IPropertyChangeListener,
 		zoomStatistics = getImageModel().getStatistics( imageRect );
 		// Set the UI controls
 		if (controls != null) {
-			controls.setMinMaxValueText2(zoomStatistics);
+			controls.setMinMaxValueText(zoomStatistics);
 		}
 		if (image != null) {
 			image.initAndDisplayImage();
