@@ -72,12 +72,13 @@
    <extension
          point="org.eclipse.ui.editors">
       <editor
-            id="org.eclipse.ui.examples.rcp.texteditor.editors.xml.XMLEditor"
-            icon="icons/text.gif"
-            name="Sample XML Editor"
             class="org.eclipse.ui.examples.rcp.texteditor.editors.xml.XMLEditor"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            extensions="xml,html"/>
+            default="false"
+            extensions="xml"
+            icon="icons/text.gif"
+            id="org.eclipse.ui.examples.rcp.texteditor.editors.xml.XMLEditor"
+            name="Sample XML Editor"/>
       <editor
             id="org.eclipse.ui.examples.rcp.texteditor.editors.SimpleEditor"
             icon="icons/text.gif"
