@@ -1870,9 +1870,9 @@ public class ImageComponentImage implements IImagesVarKeys {
 		Point p2 = new Point(0, 0);
 		int index;
 		for (int i = 0; i < len; i++) {
-			if (imageValues[i] < 0) {
-				scaled_pixel = 0; // Reserved for not measured values (like -1)
-			} else {
+//			if (imageValues[i] < 0) {
+//				scaled_pixel = 0; // Reserved for not measured values (like -1)
+//			} else {
 				if (imageValues[i] < _minimum) {
 					scaled_pixel = 0;
 				} else if (imageValues[i] >= _maximum) {
@@ -1881,7 +1881,7 @@ public class ImageComponentImage implements IImagesVarKeys {
 					scaled_pixel = imageValues[i] - _minimum;
 				}
 				scaled_pixel = scaled_pixel * scale_8bit + 1;
-			}
+//			}
 			p2.x = i % imageRect.width;
 			p2.y = i / imageRect.width;
 			// Keep it in bounds
