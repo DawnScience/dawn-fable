@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet
+      title="Intensity settings">
+   <intro>
+      <description>
+         This cheat sheet helps you to open an image with fable imageviewer, and shows you how to use the intensity settings with the file.
+If you have just completed the previous cheat sheet,
+please close all your data file parts.
+      </description>
+   </intro>
+   <item
+         title="Data Browsing Perspective">
+      <description>
+         Please choose the data browsing perspective if you do not already have it selected (nothing will happen if you do not).
+      </description>
+      <command
+            required="false"
+            serialization="org.eclipse.ui.perspectives.showPerspective(org.eclipse.ui.perspectives.showPerspective.perspectiveId=org.edna.workbench.application.perspective.DataPerspective)"/>
+   </item>
+   <item
+         title="Open File">
+      <description>
+         Right click on an example file from the &apos;data&apos; project containing a test image, then select &apos;Open With&apos;, then &apos;Fable Image&apos;.
+      </description>
+      <command
+            required="false"
+            serialization="org.eclipse.ui.navigate.openResource(filePath=data/examples/ref-testscale_1_001.img)"/>
+   </item>
+   <item
+         title="Select &apos;Autointensity&apos; tool">
+      <description>
+         Try clicking on the button labelled &apos;Scale the palette between the minimum and maximum intensity in the data&apos; from the toolbar above the plot, to turn autointensity on and off.
+This button may be obscured on Linux if the window containing the plot is too small.
+      </description>
+   </item>
+   <item
+         title="Turn off autointensity">
+      <description>
+         Ensure that autointensity is turned off by clicking on the button labelled &apos;Scale the palette between the minimum and maximum intensity in the data&apos; from the toolbar above the plot.
+When autointensity is of, the &apos;Current&apos; intensity values (Min, Max) can be changed below the plot either by moving the slider, or typing in value.
+Set the Max Intensity to maximum by moving the slider to the right.
+      </description>
+   </item>
+   <item
+         title="Turn on autointensity">
+      <description>
+         Turn on autointensity by clicking on the button labelled &apos;Scale the palette between the minimum and maximum intensity in the data&apos; from the toolbar above the plot.
+When autointensity is on, the &apos;Current&apos; intensity values can not be changed below the plot.
+The Max Intensity is now automatically set to a lower value, instead of maximum value set in previous step.
+      </description>
+   </item>
+</cheatsheet>
