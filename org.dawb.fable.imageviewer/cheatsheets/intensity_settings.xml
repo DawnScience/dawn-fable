@@ -22,9 +22,6 @@ please close all your data file parts.
       <description>
          Right click on an example file from the &apos;data&apos; project containing a test image, then select &apos;Open With&apos;, then &apos;Fable Image&apos;.
       </description>
-      <command
-            required="false"
-            serialization="org.eclipse.ui.navigate.openResource(filePath=data/examples/ref-testscale_1_001.img)"/>
    </item>
    <item
          title="Select &apos;Autointensity&apos; tool">

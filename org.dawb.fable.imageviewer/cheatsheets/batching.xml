@@ -23,9 +23,6 @@ please close all your data file parts.
          Right click on the example file &apos;ref-testscale_1_001.img&apos; from the &apos;data&apos; project containing a test image, then select &apos;Open With&apos;, then &apos;Fable Image&apos;.
 Note that there is &apos;1/2&apos; shown at right side of the slider in the second line of the toolbar above the plot, because there are two images with same name and different index, and first image is selected.
       </description>
-      <command
-            required="false"
-            serialization="org.eclipse.ui.navigate.openResource(filePath=data/examples/ref-testscale_1_001.img)"/>
    </item>
    <item
          title="Select image of dataset">
