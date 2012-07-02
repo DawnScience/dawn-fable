@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cheatsheet
+      title="Batching">
+   <intro>
+      <description>
+         This cheat sheet helps you to open an image with fable imageviewer, and shows you how to use the batching tools with the file.
+If you have just completed the previous cheat sheet,
+please close all your data file parts.
+      </description>
+   </intro>
+   <item
+         title="Data Browsing Perspective">
+      <description>
+         Please choose the data browsing perspective if you do not already have it selected (nothing will happen if you do not).
+      </description>
+      <command
+            required="false"
+            serialization="org.eclipse.ui.perspectives.showPerspective(org.eclipse.ui.perspectives.showPerspective.perspectiveId=org.edna.workbench.application.perspective.DataPerspective)"/>
+   </item>
+   <item
+         title="Open File">
+      <description>
+         Right click on the example file &apos;ref-testscale_1_001.img&apos; from the &apos;data&apos; project containing a test image, then select &apos;Open With&apos;, then &apos;Fable Image&apos;.
+Note that there is &apos;1/2&apos; shown at right side of the slider in the second line of the toolbar above the plot, because there are two images with same name and different index, and first image is selected.
+      </description>
+   </item>
+   <item
+         title="Select image of dataset">
+      <description>
+         Try moving the slider or clicking on the arrows of the slider in the second line of the toolbar above the plot, to select different image of dataset.
+Select the first image. &apos;1/2&apos; should be displayed.
+      </description>
+   </item>
+   <item
+         title="Set batch amount">
+      <description>
+     The batch amount can be 1 or 2 now, since there are two images in the dataset.
+Set the batch amount to 2 at the right side of the slider in the second line of the toolbar above the plot, to batch 2 images. The result should be the sum of the images, showing spots from each image.
+      </description>
+   </item>
+   <item
+         title="Select image of dataset and batch amount">
+      <description>
+         Set the batch amount to 1, and select the first image, the first image and &apos;1/2&apos; should be displayed. Now select the second image. &apos;2/2&apos; should be displayed. Set the batch amount to 2. Since can not sum the second and third image (there is no third image), thus the sum of first two images and &apos;1/2&apos; should be displayed.
+      </description>
+   </item>
+</cheatsheet>

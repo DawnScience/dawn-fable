@@ -12,18 +12,22 @@ package fable.imageviewer.model;
 import java.awt.Dimension;
 import java.util.Arrays;
 import java.util.EventListener;
+import java.util.Vector;
 
 import javax.swing.event.EventListenerList;
 
 import jep.JepException;
 
 import org.dawb.fabio.FabioFile;
-import org.dawb.fabio.FableJep;
 import org.eclipse.swt.graphics.Rectangle;
 
 import org.embl.cca.utils.imageviewer.Histogram;
-import org.embl.cca.utils.imageviewer.Point2DWithValue;
+import org.embl.cca.utils.imageviewer.PointWithValueFFF;
+import org.embl.cca.utils.imageviewer.PointWithValueIIF;
+import org.embl.cca.utils.imageviewer.QuickSort;
+import org.embl.cca.utils.imageviewer.RangeWithValuesFFV;
 import org.embl.cca.utils.imageviewer.Statistics;
+import org.slf4j.Logger;
 
 /**
  * This class implements a simple image model that stores the the width, height,
@@ -248,6 +252,253 @@ public class ImageModel implements Cloneable {
 		return statistics;
 	}
 
+    /**
+     * Searches the specified bins vector for the bin (range of keys)
+     * containing the specified key using the binary search algorithm. The
+     * vector must be sorted into ascending order prior to making this call.
+     * If it is not sorted, the results are undefined. If the vector contains
+     * multiple elements containing the specified key, there is no guarantee
+     * which one will be found.
+     *
+     * <p>This method runs in log(n) time for a "random access" vector (which
+     * provides near-constant-time positional access).
+     *
+     * @param  bins the bins vector to be searched.
+     * @param  key the value of which bin to be searched for.
+     * @return the index of the search key, if it is contained in the vector;
+     *	       otherwise, <tt>(-(<i>insertion point</i>) - 1)</tt>.  The
+     *	       <i>insertion point</i> is defined as the point at which the
+     *	       key would be inserted into the vector: the index of the first
+     *	       element greater than the key, or <tt>vector.size()</tt> if all
+     *	       elements in the vector are less than the specified key.  Note
+     *	       that this guarantees that the return value will be &gt;= 0 if
+     *	       and only if the key is found.
+     */
+	public int searchBin( Vector<RangeWithValuesFFV<Float>> bins, float key ) {
+		int low = 0;
+		int high = bins.size() - 1;
+        while (low <= high) {
+            int mid = (low + high) >>> 1;
+            if( key < bins.get(mid).rangeStart )
+                high = mid - 1;
+            else {
+            	if( key >= bins.get(mid).rangeEnd )
+            		low = mid + 1;
+            	else
+            		return mid; // key found
+            }
+        }
+        return -(low + 1);  // key not found
+	}
+
+	public Statistics getStatistics(Rectangle rect) {
+		final Logger logger = org.slf4j.LoggerFactory.getLogger(ImageModel.class);
+		Rectangle imageRect = new Rectangle( 0, 0, width, height );
+		Rectangle constrained = imageRect.intersection(rect);
+		int iMax = constrained.x + constrained.width;
+		int jMax = constrained.y + constrained.height;
+		float[] rectData = new float[ constrained.width * constrained.height ];
+		int d = 0;
+		int s = constrained.y * width + constrained.x;
+		float min = Float.MAX_VALUE;
+		float max = -Float.MAX_VALUE;
+		float sum = 0.0f;
+		long t0 = System.nanoTime();
+		//Copying data of selected rectangle, in the meantime calculating statistics
+		for( int j = constrained.y; j < jMax; j++ ) {
+			int sj = s;
+			for( int i = constrained.x; i < iMax; i++ ) {
+				float val = data[ s++ ];
+				rectData[ d++ ] = val;
+				sum += val;
+				if (val < min) min = val;
+				if (val > max) max = val;
+			}
+			s = sj + width;
+		}
+
+		long t1 = System.nanoTime();
+//		logger.debug( "cut rect.dt [msec]= " + ( t1 - t0 ) / 1000000 ); //around 37 msec
+		final int topAmountMin = 100000; //Value by experience
+		int topAmount = Math.min( Math.max( (int)( rectData.length * 0.1f ), topAmountMin ), rectData.length ); //The top 10% of points will be PSF-ed, anyway this could be configurable
+		int topFrom = rectData.length - topAmount;
+//		float[] sortedData = QuickSort.sort( rectData );
+		float[] sortedData = QuickSort.sortTop( rectData, topFrom );
+		long t2 = System.nanoTime();
+		logger.debug( "QuickSort.dt [msec]= " + ( t2 - t1 ) / 1000000 ); //around 760 msec
+		float topFromValue = sortedData[ topFrom ]; 
+		//Find first other than value@topFrom, because there can be more value@topFrom below topFrom we do not count
+		while( topFrom < rectData.length && sortedData[ topFrom ] == topFromValue )
+			topFrom++;
+		topAmount = rectData.length - topFrom;
+
+		for( int i = topFrom + 1; i < sortedData.length; i++ )
+			if( sortedData[ i - 1 ] > sortedData[ i ] )
+				System.out.println( "QuickSort failure!" );
+			
+//		final Dimension dataDim = new Dimension( width, height );
+		Statistics minMaxMean = new Statistics( min, max, sum / sortedData.length, false );
+
+		PointWithValueIIF[] psfPoints = new PointWithValueIIF[ topAmount ];
+		if( topAmount > 0 ) {
+			final float highlightValueMin = sortedData[ topFrom ];
+			// Searching for the values >= highlightValueMin to be highlighted by PSF
+			int iH = 0;
+			iMax = constrained.width;
+			jMax = constrained.height;
+			for( int j = 0; j < jMax; j++ ) {
+				int xyOffset = (constrained.y + j) * width + constrained.x; 
+				for( int i = 0; i < iMax; i++ ) {
+					float val = data[ xyOffset++ ];
+					if( val >= highlightValueMin ) {
+//						try {
+							psfPoints[ iH++ ] = new PointWithValueIIF( i, j, val );
+//						} catch( Exception e ) {
+//							int aaa = 0;
+//						}
+					}
+				}
+			}
+		}
+		long t3 = System.nanoTime();
+//		logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		Arrays.sort( psfPoints );
+		final int valueAmountTotal = constrained.width * constrained.height;
+		//TODO passing dynHistogram instead of(?) histogram
+		float binWidth = 0; //TODO Set value, Width of bins
+		minMaxMean.setHistogram( new Histogram( null, minMaxMean.getMinimum(), binWidth, valueAmountTotal ) );
+		minMaxMean.setPSFPoints( psfPoints );
+		minMaxMean.setReadOnly( true );
+		return minMaxMean;
+/*
+		final int binAmountMax = 100; 
+		final int binHeightLimiter = Math.max( rectData.length / binAmountMax, 1 ); //Expression by experience
+
+		// Creating histogram
+		// At most 1% of maximum amount of bins can be the bin width
+//		final int binWidthMax = binAmountMax / 100; //Value by experience
+		// The preferred bin size
+		int binIndex = 0;
+		int binStart = 0;
+//		int binValueAmount = 0;
+		PointWithValueFFF[] dynHistogram = new PointWithValueFFF[ rectData.length ];
+		int sumBins = 0;
+		int sumBinsPrev = 0;
+		int prevIH = 0;
+		int iHMax = rectData.length;
+		int iH;
+		for( iH = 0; iH < iHMax; iH++ ) {
+			if( sortedData[ iH ] != sortedData[ prevIH ] ) {
+				prevIH = iH - 1;
+				sumBinsPrev = sumBins;
+			}
+			final int val = 1;
+			if( ( sumBinsPrev > 0 && sumBins + val > binHeightLimiter ) ) {
+				dynHistogram[ binIndex++ ] = new PointWithValueFFF( sortedData[ binStart ], sortedData[ prevIH ], sumBinsPrev );
+				binStart = iH;
+				prevIH = iH;
+				sumBinsPrev = 0;
+				sumBins = val;
+			} else
+				sumBins += val;
+		}
+		dynHistogram[ binIndex++ ] = new PointWithValueFFF( sortedData[ binStart ], sortedData[ iH - 1 ], sumBins );
+		PointWithValueFFF[] dynHistogramPacked = new PointWithValueFFF[ binIndex ];
+		System.arraycopy( dynHistogram, 0, dynHistogramPacked, 0, binIndex );
+//		for( int g = 0; g < dynHistogramPacked.length; g++ )
+//			System.out.println( "DHP[" + g + "] = " + dynHistogramPacked[ g ].toString() );
+
+		Vector<RangeWithValuesFFV<Float>> bins = new Vector<RangeWithValuesFFV<Float>>(binAmountMax);
+		bins.add( new RangeWithValuesFFV<Float>(Float.MIN_VALUE, Float.MAX_VALUE, binHeightLimiter + 1 ) );
+		iMax = constrained.width;
+		jMax = constrained.height;
+		for( int j = 0; j < jMax; j++ ) {
+			int xyOffset = j * constrained.width; 
+			for ( int i = 0; i < iMax; i++ ) {
+				float curData = rectData[ xyOffset++ ];
+				int binIndex = searchBin( bins, curData ); //We are sure it finds a bin
+				RangeWithValuesFFV<Float> bin = bins.get(binIndex);
+				bin.values.add(new Float(curData));
+				int binSize = bin.values.size();
+				int binHalfSize = ( binSize + 1 ) >>> 1;
+				if( ( binSize % binHeightLimiter ) == 0 ) { //Split the bin
+					QuickSort.sortInItself( bin.values );
+					int findHalf = -1;
+					Float fPrev = 0f;
+					while( ++findHalf < binSize ) {
+						Float f = bin.values.get( findHalf );
+						if( findHalf >= binHalfSize && f != fPrev )
+							break;
+						fPrev = f;
+					}
+					if( findHalf < binSize ) {
+						RangeWithValuesFFV<Float> binNew = new RangeWithValuesFFV<Float>(bin.values.get( findHalf ), bin.rangeEnd, binHeightLimiter ); 
+						bins.insertElementAt( binNew, binIndex + 1 );
+						while( binSize > findHalf++ ) {
+							Float f = bin.values.remove( 0 );
+							binNew.values.add( f );
+							findHalf++;
+						}
+						bin.rangeEnd = binNew.rangeStart;
+					}
+				}
+			}
+		}
+		
+
+//		float min = minMaxMean.getMinimum();
+//		int[] histogram = new int[ (int) ( minMaxMean.getMaximum() - min + 1 ) ];
+//		for (int j = 0; j < rect.height; j++) {
+//			int xyOffset = (rect.y + j) * width + rect.x; 
+//			for (int i = 0; i < rect.width; i++) {
+//				histogram[ (int)( data[ xyOffset++ ] - min ) ]++;
+//			}
+//		}
+
+		// Searching for the 1% (but >=valueAmountMin) of values to be highlighted by PSF
+		final int valueAmountTotal = rect.width * rect.height;
+		final int valueAmountMin = 10000; //Value by experience
+		int valueAmountMax = Math.max( valueAmountTotal / 100, valueAmountMin );
+		int valueAmountPartial = 0;
+		for( iH = dynHistogramPacked.length - 1; iH >= 0; iH-- ) {
+			valueAmountPartial += dynHistogramPacked[ iH ].z;
+			if( valueAmountPartial > valueAmountMax )
+				break;
+		}
+		if( iH >= 0 )
+			valueAmountPartial -= dynHistogramPacked[ iH ].z;
+		PointWithValueIIF[] psfPoints = new PointWithValueIIF[ valueAmountPartial ];
+		// Searching for the values >= highlightValueMin to be highlighted by PSF
+		if( iH + 1 < dynHistogramPacked.length ) { //else way too many values in last bin
+			float highlightValueMin = dynHistogramPacked[ iH + 1 ].x;
+			iH = 0;
+			for( int j = 0; j < rect.height; j++ ) {
+				int xyOffset = (rect.y + j) * width + rect.x; 
+				for( int i = 0; i < rect.width; i++ ) {
+					float val = data[ xyOffset++ ];
+					if( val >= highlightValueMin ) {
+						try {
+						psfPoints[ iH++ ] = new PointWithValueIIF( i, j, val );
+						} catch( Exception e ) {
+							int aaa = 0;
+						}
+					}
+				}
+			}
+		}
+
+		long t3 = System.nanoTime();
+//		logger.debug( "histograming.dt [msec]= " + ( t3 - t2 ) / 1000000 ); //around 153 msec
+		Arrays.sort( psfPoints );
+		//TODO passing dynHistogram instead of(?) histogram
+		float binWidth = 0; //TODO Set value, Width of bins
+		minMaxMean.setHistogram( new Histogram( null, minMaxMean.getMinimum(), binWidth, valueAmountTotal ) );
+		minMaxMean.setPSFPoints( psfPoints );
+		minMaxMean.setReadOnly( true );
+		return minMaxMean;
+*/
+	}
+
 	/**
 	 * Get the statistics (min, max, mean) for a sub Rectangle. These are
 	 * calculated each time this method is called.
@@ -256,7 +507,7 @@ public class ImageModel implements Cloneable {
 	 * @return The statistics
 	 * @remark as float[3] = {min, max, mean}.
 	 */
-	public Statistics getStatistics(Rectangle rect) {
+	public Statistics getStatisticsPrev(Rectangle rect) {
 		final Dimension dataDim = new Dimension( width, height );
 		Statistics minMaxMean = Statistics.calculateMinMaxMean( data, dataDim, rect, false );
 
@@ -293,21 +544,21 @@ public class ImageModel implements Cloneable {
 		int binIndex = 0;
 		int binStart = 0;
 //		int binValueAmount = 0;
-		Point2DWithValue[] dynHistogram = null;
-		dynHistogram = new Point2DWithValue[ histogram.length ];
+		PointWithValueIIF[] dynHistogram = null;
+		dynHistogram = new PointWithValueIIF[ histogram.length ];
 		int sum = 0;
 		int iH;
 		for( iH = 0; iH < histogram.length; iH++ ) {
 			int val = histogram[ iH ];
 			if( ( sum > 0 && sum + val > binHeightLimiter ) || iH - binStart > binWidthMax ) {
-				dynHistogram[ binIndex++ ] = new Point2DWithValue( binStart, iH - 1, sum );
+				dynHistogram[ binIndex++ ] = new PointWithValueIIF( binStart, iH - 1, sum );
 				binStart = iH;
 				sum = val;
 			} else
 				sum += val;
 		}
-		dynHistogram[ binIndex++ ] = new Point2DWithValue( binStart, iH - 1, sum );
-		Point2DWithValue[] dynHistogramPacked = new Point2DWithValue[ binIndex ];
+		dynHistogram[ binIndex++ ] = new PointWithValueIIF( binStart, iH - 1, sum );
+		PointWithValueIIF[] dynHistogramPacked = new PointWithValueIIF[ binIndex ];
 		System.arraycopy( dynHistogram, 0, dynHistogramPacked, 0, binIndex );
 
 		/**
@@ -324,7 +575,7 @@ public class ImageModel implements Cloneable {
 		}
 		if( iH >= 0 )
 			valueAmountPartial -= dynHistogramPacked[ iH ].z;
-		Point2DWithValue[] psfPoints = new Point2DWithValue[ valueAmountPartial ];
+		PointWithValueIIF[] psfPoints = new PointWithValueIIF[ valueAmountPartial ];
 		// Searching for the values >= highlightValueMin to be highlighted by PSF
 		if( iH + 1 < dynHistogramPacked.length ) { //else way too many values in last bin
 			float highlightValueMin = dynHistogramPacked[ iH + 1 ].x + minMaxMean.getMinimum();
@@ -334,7 +585,7 @@ public class ImageModel implements Cloneable {
 				for( int i = 0; i < rect.width; i++ ) {
 					float val = data[ xyOffset++ ];
 					if( val >= highlightValueMin ) {
-						psfPoints[ iH++ ] = new Point2DWithValue( i, j, val );
+						psfPoints[ iH++ ] = new PointWithValueIIF( i, j, val );
 					}
 				}
 			}

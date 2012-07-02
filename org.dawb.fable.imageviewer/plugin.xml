@@ -207,5 +207,33 @@
              name="Open ImageViewer Perspective">
        </command>
     </extension>
+    <extension
+          point="org.eclipse.ui.cheatsheets.cheatSheetContent">
+       <category
+             id="org.dawb.fable.imageviewer.category"
+             name="Fable Imageviewer">
+       </category>
+       <cheatsheet
+             category="org.dawb.fable.imageviewer.category"
+             composite="false"
+             contentFile="$nl$/cheatsheets/highlighting.xml"
+             id="org.dawb.fable.imageviewer.cheatsheet"
+             name="Highlighting">
+       </cheatsheet>
+       <cheatsheet
+             category="org.dawb.fable.imageviewer.category"
+             composite="false"
+             contentFile="$nl$/cheatsheets/intensity_settings.xml"
+             id="org.dawb.fable.imageviewer.cheatsheet"
+             name="Intensity settings">
+       </cheatsheet>
+       <cheatsheet
+             category="org.dawb.fable.imageviewer.category"
+             composite="false"
+             contentFile="$nl$/cheatsheets/batching.xml"
+             id="org.dawb.fable.imageviewer.cheatsheet"
+             name="Batching">
+       </cheatsheet>
+    </extension>
  
 </plugin>

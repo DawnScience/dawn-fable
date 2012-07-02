@@ -49,6 +49,8 @@ import fable.imageviewer.internal.ZoomSelection;
 import fable.imageviewer.model.ImageModel;
 import fable.imageviewer.model.ImageModelFactory;
 import fable.imageviewer.preferences.PreferenceConstants;
+
+import org.embl.cca.utils.imageviewer.FableSelectionProvider;
 import org.embl.cca.utils.imageviewer.Statistics;
 import fable.imageviewer.rcp.Activator;
 import fable.imageviewer.views.ImageView;
@@ -316,8 +318,8 @@ public class ImageComponent implements IPropertyChangeListener,
 		// logger = FableLogger.getLogger(this.getClass());
 		controls = new ImageComponentUI(this);
 		controls.setStatusLabel(statusLabel);
+		getParentPart().getSite().setSelectionProvider(new FableSelectionProvider()); //Set this before createControls, because it adds listener to this
 		controls.createControls(parent);
-
 	}
 
 	/*
@@ -588,6 +590,8 @@ public class ImageComponent implements IPropertyChangeListener,
 				imageModel.getHeight(), imageDiffArray);
 		// TODO: KE: Consider keeping the full statistics so the zoomed
 		// image looks the same as the unzoomed
+		// TODO: GN: Also not calculating the statistics each time would
+		// make it a bit faster
 		zoomStatistics = imageDiffModel.getStatistics(image.getImageRect());
 		long elapsed = System.currentTimeMillis() - start;
 		updateStatusLabel(getFileName() + " - " + fileNameSaved + " took "
@@ -740,6 +744,7 @@ public class ImageComponent implements IPropertyChangeListener,
 		if (image != null) {
 			image.dispose();
 		}
+		getParentPart().getSite().setSelectionProvider(null);
 		// Remove this instance from the controller's listener list. It doesn't
 		// matter if it is not there for this instance.
 		controller.removePropertyChangeListener(this);
@@ -749,8 +754,7 @@ public class ImageComponent implements IPropertyChangeListener,
 			workbenchListener = null;
 		}
 		if (parentPart.getSite() != null) {
-			parentPart.getSite().getWorkbenchWindow().getSelectionService()
-					.removeSelectionListener(this);
+			parentPart.getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(this);
 		}
 		if (controls!=null) controls.dispose();
 	}
@@ -945,7 +949,7 @@ public class ImageComponent implements IPropertyChangeListener,
 		zoomStatistics = getImageModel().getStatistics( imageRect );
 		// Set the UI controls
 		if (controls != null) {
-			controls.setMinMaxValueText2(zoomStatistics);
+			controls.setMinMaxValueText(zoomStatistics);
 		}
 		if (image != null) {
 			image.initAndDisplayImage();
