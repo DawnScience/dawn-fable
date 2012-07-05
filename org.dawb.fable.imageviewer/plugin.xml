@@ -235,5 +235,16 @@
              name="Batching">
        </cheatsheet>
     </extension>
+    <extension
+          point="org.eclipse.ui.editors">
+       <editor
+             class="fable.imageviewer.editor.ImageEditor"
+             default="false"
+             extensions="tif, tiff, cbf, img, ciff, mccd, edf, pgm, cor, bruker"
+             icon="icons/image_editor.png"
+             id="fable.imageviewer.editor.ImageEditor"
+             name="Fable Image">
+       </editor>
+    </extension>
  
 </plugin>
