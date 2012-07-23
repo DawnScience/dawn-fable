@@ -374,6 +374,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 			}
 		});
 		userMinimumText.setEnabled(!isAutoScale);
+		userMinimumScale.setEnabled(!isAutoScale);
 		label = new Label(controlComposite, SWT.NONE); //Column 7
 		label.setText("Suggested=");
 		label.setToolTipText("The suggested minimum intensity used by the palette");
@@ -488,6 +489,7 @@ public class ImageComponentUI implements IImagesVarKeys {
 			;
 		});
 		userMaximumText.setEnabled(!isAutoScale);
+		userMaximumScale.setEnabled(!isAutoScale);
 		label = new Label(controlComposite, SWT.NONE); //Column 7
 		label.setText("Suggested=");
 		label.setToolTipText("The suggested maximum intensity used by the palette");
