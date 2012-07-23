@@ -791,6 +791,8 @@ public class ImageComponentUI implements IImagesVarKeys {
 		}
 		userMinimumText.setEnabled(!isAutoScale);
 		userMaximumText.setEnabled(!isAutoScale);
+		userMinimumScale.setEnabled(!isAutoScale);
+		userMaximumScale.setEnabled(!isAutoScale);
 	}
 
 	/**
