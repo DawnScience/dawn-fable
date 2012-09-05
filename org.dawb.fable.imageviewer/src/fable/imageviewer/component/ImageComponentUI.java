@@ -58,10 +58,10 @@ import fable.imageviewer.internal.IImagesVarKeys;
 import fable.imageviewer.internal.ZoomSelection;
 import fable.imageviewer.preferences.PreferenceConstants;
 import fable.imageviewer.rcp.Activator;
-import org.embl.cca.utils.imageviewer.ExecutableManager;
+import org.embl.cca.utils.threading.ExecutableManager;
 import org.embl.cca.utils.imageviewer.LogScale;
 import org.embl.cca.utils.imageviewer.Statistics;
-import org.embl.cca.utils.imageviewer.TrackableRunnable;
+import org.embl.cca.utils.threading.TrackableRunnable;
 import org.embl.cca.utils.imageviewer.ConverterUtils;
 
 /**

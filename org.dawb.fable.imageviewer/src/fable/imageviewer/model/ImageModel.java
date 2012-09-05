@@ -22,9 +22,8 @@ import org.dawb.fabio.FabioFile;
 import org.eclipse.swt.graphics.Rectangle;
 
 import org.embl.cca.utils.imageviewer.Histogram;
-import org.embl.cca.utils.imageviewer.PointWithValueFFF;
 import org.embl.cca.utils.imageviewer.PointWithValueIIF;
-import org.embl.cca.utils.imageviewer.QuickSort;
+import org.embl.cca.utils.sorting.QuickSort;
 import org.embl.cca.utils.imageviewer.RangeWithValuesFFV;
 import org.embl.cca.utils.imageviewer.Statistics;
 import org.slf4j.Logger;
