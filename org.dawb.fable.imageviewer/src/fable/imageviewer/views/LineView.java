@@ -102,7 +102,7 @@ public class LineView extends ViewPart {
 		plot.setLayout(new FillLayout());
 		try {
 	        IActionBars wrapper = this.getViewSite().getActionBars();
-			plottingSystem.createPlotPart(plot, title, wrapper, PlotType.PT1D, this);
+			plottingSystem.createPlotPart(plot, title, wrapper, PlotType.XY, this);
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

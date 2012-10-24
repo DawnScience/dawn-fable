@@ -85,8 +85,8 @@ public class ProfileView extends ViewPart {
 		plot.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		try {
 	        final IActionBars bars = this.getViewSite().getActionBars();
-			plottingSystem_x.createPlotPart(plot, title, bars, PlotType.PT1D, this);
-			plottingSystem_y.createPlotPart(plot, title, bars, PlotType.PT1D, this);
+			plottingSystem_x.createPlotPart(plot, title, bars, PlotType.XY, this);
+			plottingSystem_y.createPlotPart(plot, title, bars, PlotType.XY, this);
 			
 			// No toolbar or menubar required. Discussed with Andy Gotz
             bars.getToolBarManager().removeAll();
