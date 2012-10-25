@@ -57,10 +57,8 @@ public class ProfileView extends ViewPart {
 		try {
 	        this.plottingSystem_x = PlottingFactory.createPlottingSystem();
 	        plottingSystem_x.setColorOption(ColorOption.NONE);
-	        plottingSystem_x.setDatasetChoosingRequired(false);
 	        this.plottingSystem_y = PlottingFactory.createPlottingSystem();
 	        plottingSystem_y.setColorOption(ColorOption.NONE);
-	        plottingSystem_y.setDatasetChoosingRequired(false);
 		} catch (Exception ne) {
 			logger.error("Cannot locate any plotting systems!", ne);
 		}
