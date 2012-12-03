@@ -13,7 +13,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.update.ui.UpdateManagerUI;
+//import org.eclipse.update.ui.UpdateManagerUI;
 
 public class UpdateAction extends Action implements IAction {
 
@@ -36,7 +36,7 @@ public class UpdateAction extends Action implements IAction {
 				 */
 //				UpdateJob job = new UpdateJob("Searching for updates", false, false);
 //				UpdateManagerUI.openInstaller(window.getShell(), job);
-				UpdateManagerUI.openInstaller(window.getShell());
+				///UpdateManagerUI.openInstaller(window.getShell());
 			}
 		});
 	}
