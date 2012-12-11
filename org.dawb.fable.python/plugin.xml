@@ -19,15 +19,17 @@
              primary="true">
        </toc>
     </extension>
+    <!--
     <extension
           point="org.eclipse.ui.preferencePages">
        <page
-             category="org.edna.workbench.preferences.root"
+             category="org.dawnsci.preferences.root"
              class="fable.python.preferences.PythonPreferencePage"
              id="fable.python.preferences.PythonPreferencePage"
              name="Python">
        </page>
     </extension>
+    -->
     <extension
           point="org.eclipse.core.runtime.preferences">
        <initializer

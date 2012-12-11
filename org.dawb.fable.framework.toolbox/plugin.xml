@@ -24,6 +24,7 @@
             class="fable.framework.toolboxpreferences.PreferencesInitializer">
       </initializer>
    </extension>
+   <!--
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
@@ -39,7 +40,7 @@
             name="Memory Usage">
       </page>
       <page
-            category="org.edna.workbench.preferences.root"
+            category="org.dawnsci.preferences.root"
             class="fable.framework.toolboxpreferences.ToolsPreferencePage"
             id="fable.framework.toolbox.tools"
             name="Tools">
@@ -51,5 +52,5 @@
             name="Image Printing">
       </page>
    </extension>
- 
+   -->
 </plugin>

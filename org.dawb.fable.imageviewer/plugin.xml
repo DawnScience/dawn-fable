@@ -116,15 +116,17 @@
     		splashId="fable.imageviewer.splashHandler">
     	</splashHandlerProductBinding>
 	</extension>
+	<!--
     <extension
           point="org.eclipse.ui.preferencePages">
        <page
-             category="org.edna.workbench.preferences.root"
+             category="org.dawnsci.preferences.root"
              class="fable.imageviewer.preferences.ImageviewerPreferencePage"
              id="fable.imageviewer.preferences.ImageviewerPreferencePage"
              name="ImageViewer">
        </page>
     </extension>
+    -->
     <extension
           point="org.eclipse.core.runtime.preferences">
        <initializer

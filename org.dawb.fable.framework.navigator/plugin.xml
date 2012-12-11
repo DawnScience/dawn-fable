@@ -26,7 +26,7 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            category="org.edna.workbench.preferences.root"
+            category="org.dawnsci.preferences.root"
             class="fable.framework.navigator.preferences.SampleNavigatorPreferences"
             id="fable.framework.navigator.sampleNavigatorPreferences"
             name="Fabio Files">
