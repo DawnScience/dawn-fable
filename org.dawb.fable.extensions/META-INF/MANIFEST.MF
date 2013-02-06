@@ -18,5 +18,5 @@ Import-Package: fable.framework.navigator,
  org.slf4j,
  uk.ac.diamond.scisoft.analysis.dataset,
  uk.ac.diamond.scisoft.analysis.io,
- uk.ac.gda.monitor
+ uk.ac.diamond.scisoft.analysis.monitor
 Export-Package: org.dawb.fable.extensions

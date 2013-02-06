@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
 import uk.ac.diamond.scisoft.analysis.io.DataHolder;
 import uk.ac.diamond.scisoft.analysis.io.LoaderFactory;
-import uk.ac.gda.monitor.IMonitor;
+import uk.ac.diamond.scisoft.analysis.monitor.IMonitor;
 import fable.framework.navigator.Activator;
 import fable.framework.navigator.preferences.FabioPreferenceConstants;
 import fable.imageviewer.model.IFableImage;
