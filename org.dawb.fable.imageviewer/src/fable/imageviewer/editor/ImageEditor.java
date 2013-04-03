@@ -327,7 +327,7 @@ public class ImageEditor extends EditorPart implements IReusableEditor, ActionsP
 		for( int i = 0; i < len; i++ )
 		  r += "?";
 		r += "." + imageFilename.getFileExtension();
-		result = new File(imageFilename.removeLastSegments(1).toString()).listFiles( new WildCardFileFilter(r) );
+		result = new File(imageFilename.removeLastSegments(1).toString()).listFiles( new WildCardFileFilter(r, false) );
 		Arrays.sort( result, new FilenameCaseInsensitiveComparator() );
 		return result;
 	}
