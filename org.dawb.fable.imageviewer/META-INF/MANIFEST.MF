@@ -17,7 +17,8 @@ Require-Bundle: org.dawb.fable.framework.toolbox,
  org.dawb.fabio;bundle-version="1.0.0",
  org.dawb.common.ui;bundle-version="1.0.0",
  org.embl.cca.utils;bundle-version="1.0.0",
- org.eclipse.ui.ide
+ org.eclipse.ui.ide,
+ org.dawnsci.plotting.api;bundle-version="1.0.0"
 Export-Package: fable.imageviewer.actions;
   uses:="org.eclipse.jface.action,
    org.eclipse.jface.resource,

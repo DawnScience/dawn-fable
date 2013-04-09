@@ -19,9 +19,9 @@ import java.util.List;
 
 import org.dawb.common.ui.plot.AbstractPlottingSystem;
 import org.dawb.common.ui.plot.AbstractPlottingSystem.ColorOption;
-import org.dawb.common.ui.plot.PlotType;
 import org.dawb.common.ui.plot.PlottingFactory;
-import org.dawb.common.ui.plot.tool.IToolPageSystem;
+import org.dawnsci.plotting.api.PlotType;
+import org.dawnsci.plotting.api.tool.IToolPageSystem;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
