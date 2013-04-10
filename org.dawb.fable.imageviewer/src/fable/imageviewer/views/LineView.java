@@ -32,8 +32,8 @@ import org.eclipse.ui.part.ViewPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.DoubleDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
 import fable.framework.navigator.controller.SampleController;
 
 /**
@@ -157,7 +157,7 @@ public class LineView extends ViewPart {
 		DoubleDataset yData = new DoubleDataset(y, pixel.length);
 		xAxis.setName("pixel");
 		yData.setName("Intensity");
-		final List<AbstractDataset> yDataSets = new ArrayList<AbstractDataset>(1);
+		final List<IDataset> yDataSets = new ArrayList<IDataset>(1);
 		yDataSets.add(yData);
 		plottingSystem.clear();
 		plottingSystem.createPlot1D(xAxis, yDataSets, null);

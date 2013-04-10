@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.DoubleDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
 import fable.framework.navigator.controller.SampleController;
 
 /**
@@ -137,7 +138,7 @@ public class ProfileView extends ViewPart {
 		DoubleDataset x_yData = new DoubleDataset(x_y, pixel_x.length);
 		x_xAxis.setName("X pixel");
 		x_yData.setName("Intensity");
-		final List<AbstractDataset> x_yDataSets = new ArrayList<AbstractDataset>(1);
+		final List<IDataset> x_yDataSets = new ArrayList<IDataset>(1);
 		x_yDataSets.add(x_yData);
 		plottingSystem_x.clear();
 		plottingSystem_x.createPlot1D(x_xAxis, x_yDataSets, null);
@@ -157,7 +158,7 @@ public class ProfileView extends ViewPart {
 		DoubleDataset y_yData = new DoubleDataset(y_y, pixel_y.length);
 		y_xAxis.setName("Y pixel");
 		y_yData.setName("Intensity");
-		final List<AbstractDataset> y_yDataSets = new ArrayList<AbstractDataset>(1);
+		final List<IDataset> y_yDataSets = new ArrayList<IDataset>(1);
 		y_yDataSets.add(y_yData);
 		plottingSystem_y.createPlot1D(y_xAxis, y_yDataSets, null);
 	}
