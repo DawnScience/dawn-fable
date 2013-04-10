@@ -18,7 +18,9 @@ Require-Bundle: org.dawb.fable.framework.toolbox,
  org.dawb.common.ui;bundle-version="1.0.0",
  org.embl.cca.utils;bundle-version="1.0.0",
  org.eclipse.ui.ide,
- org.dawnsci.plotting.api;bundle-version="1.0.0"
+ org.dawnsci.plotting.api;bundle-version="1.0.0",
+ uk.ac.diamond.scisoft.analysis;bundle-version="1.3.0",
+ uk.ac.diamond.scisoft.analysis.api;bundle-version="1.0.0"
 Export-Package: fable.imageviewer.actions;
   uses:="org.eclipse.jface.action,
    org.eclipse.jface.resource,
@@ -88,8 +90,7 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: fable.imageviewer.actions,
  org.dawb.common.ui.plot,
- org.slf4j,
- uk.ac.diamond.scisoft.analysis.dataset
+ org.slf4j
 Bundle-Localization: plugin
 Bundle-ClassPath: icons/,
  .

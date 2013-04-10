@@ -7,7 +7,9 @@ Bundle-Activator: org.dawb.fable.extensions.Activator
 Bundle-Vendor: ESRF
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.dawb.fable.imageviewer;bundle-version="1.0.0"
+ org.dawb.fable.imageviewer;bundle-version="1.0.0",
+ uk.ac.diamond.scisoft.analysis;bundle-version="1.3.0",
+ uk.ac.diamond.scisoft.analysis.api;bundle-version="1.0.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Import-Package: fable.framework.navigator,
@@ -15,8 +17,5 @@ Import-Package: fable.framework.navigator,
  fable.framework.toolbox,
  org.dawb.common.ui.monitor,
  org.dawb.common.util.io,
- org.slf4j,
- uk.ac.diamond.scisoft.analysis.dataset,
- uk.ac.diamond.scisoft.analysis.io,
- uk.ac.diamond.scisoft.analysis.monitor
+ org.slf4j
 Export-Package: org.dawb.fable.extensions
