@@ -157,7 +157,7 @@
                 menubarPath="additions">
           </action>
        </viewerContribution>
-       <objectContribution
+       <!--<objectContribution
              adaptable="true"
              id="fable.imageviewer.objectContribution.File"
              objectClass="org.eclipse.core.resources.IFile">
@@ -169,7 +169,7 @@
                 label="Open ImageViewer File(s)"
                 menubarPath="fable.actions.openWithOtherMenu/separator1">
           </action>
-       </objectContribution>
+       </objectContribution>-->
        <objectContribution
              adaptable="true"
              id="fable.imageviewer.objectContribution.Directory"
