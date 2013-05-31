@@ -26,7 +26,7 @@
       -->
       <view
             allowMultiple="true"
-            category="org.dawb.workbench.application.data.analysis"
+            category="org.dawb.fable.imageviewer.category"
             class="fable.imageviewer.views.ImageView"
             icon="icons/zoom_box.gif"
             id="fable.imageviewer.views.ImageView"
@@ -34,7 +34,7 @@
       </view>
       <view
             allowMultiple="false"
-            category="org.dawb.workbench.application.data.analysis"
+            category="org.dawb.fable.imageviewer.category"
             class="fable.imageviewer.views.LineView"
             icon="icons/zoom_line.gif"
             id="fable.imageviewer.views.LineView"
@@ -42,7 +42,7 @@
       </view>
       <view
             allowMultiple="false"
-            category="org.dawb.workbench.application.data.analysis"
+            category="org.dawb.fable.imageviewer.category"
             class="fable.imageviewer.views.ProfileView"
             icon="icons/zoom_profile.gif"
             id="fable.imageviewer.views.ProfileView"
@@ -50,7 +50,7 @@
       </view>
       <view
             allowMultiple="false"
-            category="org.dawb.workbench.application.data.analysis"
+            category="org.dawb.fable.imageviewer.category"
             class="fable.imageviewer.views.ReliefView"
             icon="icons/zoom_relief.png"
             id="fable.imageviewer.views.ReliefView"
@@ -58,12 +58,16 @@
       </view>
       <view
             allowMultiple="false"
-            category="org.dawb.workbench.application.data.analysis"
+            category="org.dawb.fable.imageviewer.category"
             class="fable.imageviewer.views.RockingCurveView"
             icon="icons/zoom_rocking.png"
             id="fable.imageviewer.views.RockingCurveView"
             name="Rocking Curve">
       </view>
+      <category
+            id="org.dawb.fable.imageviewer.category"
+            name="Data Analysis - Fable image viewer">
+      </category>
    </extension>
    <extension
          id="product"

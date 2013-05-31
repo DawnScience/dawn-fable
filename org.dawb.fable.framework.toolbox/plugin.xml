@@ -10,7 +10,7 @@
    <extension
          point="org.eclipse.ui.views">
       <view
-            category="org.dawb.workbench.application.data.analysis"
+            category="uk.ac.diamond.scisoft.analysis.rcp"
             class="fable.framework.views.MemoryUsageView"
             icon="images/jmeth_obj.gif"
             id="fable.framework.views.memoryusageview"
