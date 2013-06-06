@@ -183,7 +183,7 @@ public class ImageViewActions implements IImagesVarKeys {
 		resetZoomAction.set(iv);
 		resetZoomAction.setToolTipText("Reset zoom to original image size");
 		
-		showHeaderTableAction = new Action("Show Meta Data") {
+		showHeaderTableAction = new Action("Show Metadata") {
 			public void run() {
 				try {
 					EclipseUtils.getPage().showView(HeaderTableView.ID);
