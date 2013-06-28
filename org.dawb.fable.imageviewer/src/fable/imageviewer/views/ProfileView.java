@@ -16,8 +16,8 @@ package fable.imageviewer.views;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dawb.common.ui.plot.AbstractPlottingSystem;
 import org.dawb.common.ui.plot.PlottingFactory;
+import org.dawnsci.plotting.api.IPlottingSystem;
 import org.dawnsci.plotting.api.PlotType;
 import org.dawnsci.plotting.api.trace.ColorOption;
 import org.eclipse.swt.SWT;
@@ -30,7 +30,6 @@ import org.eclipse.ui.part.ViewPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.DoubleDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
 import fable.framework.navigator.controller.SampleController;
@@ -49,8 +48,8 @@ public class ProfileView extends ViewPart {
 	public SampleController controller = SampleController.getController();
 	// private Display display;
 	private static final Logger logger = LoggerFactory.getLogger(ProfileView.class);
-	private AbstractPlottingSystem plottingSystem_x;
-	private AbstractPlottingSystem plottingSystem_y;
+	private IPlottingSystem plottingSystem_x;
+	private IPlottingSystem plottingSystem_y;
 	private String title = "Profile Line Plot";
 
 	public ProfileView() {
