@@ -17,9 +17,9 @@ package fable.imageviewer.views;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dawb.common.ui.plot.PlottingFactory;
 import org.dawnsci.plotting.api.IPlottingSystem;
 import org.dawnsci.plotting.api.PlotType;
+import org.dawnsci.plotting.api.PlottingFactory;
 import org.dawnsci.plotting.api.tool.IToolPageSystem;
 import org.dawnsci.plotting.api.trace.ColorOption;
 import org.eclipse.swt.SWT;
