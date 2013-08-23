@@ -180,7 +180,6 @@ public class Activator extends AbstractUIPlugin implements IVarKeys {
 			} catch (Throwable t) {
 				// Just to be sure ;-) Do nothing.
 			}
-			FableLogger.info("Fable shutting down");
 		} finally {
 			super.stop(context);
 		}
