@@ -16,7 +16,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
 import uk.ac.diamond.scisoft.analysis.io.DataHolder;
 import uk.ac.diamond.scisoft.analysis.io.LoaderFactory;
 import uk.ac.diamond.scisoft.analysis.monitor.IMonitor;
@@ -43,7 +43,7 @@ public class FableLoader implements IFableLoader {
 			}
 		}
 		
-		AbstractDataset set = null;
+		IDataset set = null;
 		
 		final long start = System.currentTimeMillis();
 		final IMonitor mon = monitor!= null ? new ProgressMonitorWrapper(monitor) : null;
