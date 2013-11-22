@@ -44,6 +44,11 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IActionBars;
+import org.embl.cca.utils.imageviewer.ConverterUtils;
+import org.embl.cca.utils.imageviewer.LogScale;
+import org.embl.cca.utils.imageviewer.Statistics;
+import org.embl.cca.utils.threading.ExecutableManager;
+import org.embl.cca.utils.threading.TrackableRunnable;
 
 import fable.framework.logging.FableLogger;
 import fable.framework.toolbox.CheckableActionGroup;
@@ -58,11 +63,6 @@ import fable.imageviewer.internal.IImagesVarKeys;
 import fable.imageviewer.internal.ZoomSelection;
 import fable.imageviewer.preferences.PreferenceConstants;
 import fable.imageviewer.rcp.Activator;
-import org.embl.cca.utils.threading.ExecutableManager;
-import org.embl.cca.utils.imageviewer.LogScale;
-import org.embl.cca.utils.imageviewer.Statistics;
-import org.embl.cca.utils.threading.TrackableRunnable;
-import org.embl.cca.utils.imageviewer.ConverterUtils;
 
 /**
  * This class manages the SWT controls for the ImageView. It holds the

@@ -35,6 +35,8 @@ import org.eclipse.ui.IWorkbenchListener;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchPart3;
 import org.eclipse.ui.PlatformUI;
+import org.embl.cca.utils.imageviewer.FableSelectionProvider;
+import org.embl.cca.utils.imageviewer.Statistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,9 +51,6 @@ import fable.imageviewer.internal.ZoomSelection;
 import fable.imageviewer.model.ImageModel;
 import fable.imageviewer.model.ImageModelFactory;
 import fable.imageviewer.preferences.PreferenceConstants;
-
-import org.embl.cca.utils.imageviewer.FableSelectionProvider;
-import org.embl.cca.utils.imageviewer.Statistics;
 import fable.imageviewer.rcp.Activator;
 import fable.imageviewer.views.ImageView;
 import fable.python.Peak;
