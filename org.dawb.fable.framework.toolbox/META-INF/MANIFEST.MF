@@ -12,7 +12,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.cheatsheets,
  org.eclipse.ui.console,
  org.apache.log4j,
- org.junit4,
+ org.junit;bundle-version="[4.10.0,5.0.0)",
  org.dawb.jlchart,
  org.dawb.jep,
  org.dawb.fable.framework.ui.texteditor

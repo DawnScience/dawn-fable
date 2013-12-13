@@ -11,7 +11,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.console,
  org.apache.log4j,
  org.dawb.jep,
- org.junit4,
+ org.junit;bundle-version="[4.10.0,5.0.0)",
  org.dawb.fabio;bundle-version="1.0.0",
  org.dawb.fable.framework.toolbox;bundle-version="1.0.0"
 Bundle-ActivationPolicy: lazy
