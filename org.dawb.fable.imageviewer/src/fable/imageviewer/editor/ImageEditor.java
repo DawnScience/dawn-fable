@@ -17,9 +17,6 @@ import java.util.TreeSet;
 
 import org.dawb.common.ui.util.GridUtils;
 import org.dawb.common.ui.widgets.ActionBarWrapper;
-//import org.dawb.gda.extensions.loaders.LoaderService;
-//import org.dawb.workbench.ui.Activator;
-//import org.dawb.workbench.ui.views.PlotDataPage;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
