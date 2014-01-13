@@ -89,33 +89,47 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <update label="dawb p2" url="http://svn.codespot.com/a/eclipselabs.org/dawb/p2/org.dawb.workbench.p2"/>
    </url>
 
-   <requires>
-      <import plugin="org.eclipse.ui"/>
-      <import plugin="org.eclipse.core.runtime"/>
-      <import plugin="org.dawb.fable.framework.toolbox"/>
-      <import plugin="org.apache.log4j"/>
-      <import plugin="org.dawb.jep"/>
-      <import plugin="org.eclipse.help.ui"/>
-      <import plugin="org.eclipse.help.webapp"/>
-      <import plugin="org.eclipse.help.appserver"/>
-      <import plugin="org.dawb.jlchart"/>
-      <import plugin="org.dawb.fable.framework.navigator"/>
-      <import plugin="org.dawb.fable.framework.ui"/>
-      <import plugin="org.eclipse.update.ui"/>
-      <import plugin="org.eclipse.ui.net"/>
-      <import plugin="org.eclipse.update.core"/>
-      <import plugin="org.lwjgl.opengl"/>
-      <import plugin="org.dawb.fable.python"/>
-      <import plugin="org.eclipse.core.resources"/>
-      <import plugin="org.dawb.fabio" version="1.0.0" match="greaterOrEqual"/>
-      <import plugin="org.dawb.common.ui" version="1.0.0" match="greaterOrEqual"/>
-      <import plugin="org.embl.cca.utils" version="1.0.0" match="greaterOrEqual"/>
-      <import plugin="com.springsource.slf4j.api"/>
-      <import plugin="uk.ac.diamond.scisoft.deprecated"/>
-      <import plugin="uk.ac.gda.common"/>
-      <import plugin="org.eclipse.ui.ide"/>
-      <import plugin="org.dawb.common.services"/>
-   </requires>
+     <plugin
+         id="org.dawb.fabio"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.dawb.fable.extensions"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.dawb.fable.framework.navigator"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.dawb.fable.framework.toolbox"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.dawb.fable.framework.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.dawb.fable.framework.ui.texteditor"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
    <plugin
          id="org.dawb.fable.imageviewer"
@@ -124,4 +138,11 @@ This Agreement is governed by the laws of the State of New York and the intellec
          version="0.0.0"
          unpack="false"/>
 
+   <plugin
+         id="org.dawb.fable.python"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+  
 </feature>
