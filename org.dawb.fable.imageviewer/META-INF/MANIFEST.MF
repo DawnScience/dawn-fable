@@ -90,7 +90,7 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: fable.imageviewer.actions,
  org.dawb.common.ui.plot,
- org.slf4j;version="[1.7.5,1.7.6)"
+ org.slf4j;version="[1.7.6,1.7.7)"
 Bundle-Localization: plugin
 Bundle-ClassPath: icons/,
  .

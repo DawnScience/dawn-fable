@@ -17,5 +17,5 @@ Import-Package: fable.framework.navigator,
  fable.framework.toolbox,
  org.dawb.common.ui.monitor,
  org.dawb.common.util.io,
- org.slf4j;version="[1.7.5,1.7.6)"
+ org.slf4j;version="[1.7.6,1.7.7)"
 Export-Package: org.dawb.fable.extensions
