@@ -33,7 +33,7 @@ class fit2dmaskimage(fabioimage):
         self.dim2 = fit2dhdr[5]
 
 
-    def read(self, fname):
+    def read(self, fname, frame=None):
         """
         Read in header into self.header and
             the data   into self.data
@@ -74,6 +74,7 @@ class fit2dmaskimage(fabioimage):
         self.data = numpy.reshape(self.data.astype(numpy.uint16),
                                     (self.dim2, self.dim1))
         self.pilimage = None
+        return self
 
 
 
@@ -84,3 +85,10 @@ class fit2dmaskimage(fabioimage):
         mimics that fabian was writing uint16 (we sometimes want floats)
         """
         raise Exception("Not implemented yet")
+
+    @staticmethod
+    def checkData(data=None):
+        if data is None:
+            return None
+        else:
+            return data.astype(int)

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#coding: utf8
 """
 
 Authors: Henning O. Sorensen & Erik Knudsen
@@ -32,10 +33,16 @@ class pilatusimage(tifimage):
         Parser based approach
         Gets all entries
         """
+
+        self.header = {}
+
 #        infile = open(infile)
         hstr = infile.read(4096)
         # well not very pretty - but seems to find start of 
         # header information
+        if (hstr.find('# ') == -1):
+            return self.header
+
         hstr = hstr[hstr.index('# '):]
         hstr = hstr[:hstr.index('\x00')]
         hstr = hstr.split('#')
@@ -43,12 +50,9 @@ class pilatusimage(tifimage):
         while go_on:
             try:
                 hstr.remove('')
-            except:
+            except Exception:
                 go_on = False
 
-
-        self.header = {}
-        
         for line in hstr:
             line = line[1:line.index('\r\n')]
             if line.find(':') > -1:
@@ -63,9 +67,9 @@ class pilatusimage(tifimage):
             elif line.find(',') > -1:
                 dump = line.split(',')
                 self.header[dump[0]] = dump[1]
-                
+
         return self.header
-        
+
 
 
     def _read(self, fname):

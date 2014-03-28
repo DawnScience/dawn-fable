@@ -1,6 +1,5 @@
-## Automatically adapted for numpy.oldnumeric Oct 05, 2007 by alter_code1.py
-
 #!/usr/bin/env python
+#coding: utf8
 """
 
 Authors: Henning O. Sorensen & Erik Knudsen
@@ -12,8 +11,8 @@ Authors: Henning O. Sorensen & Erik Knudsen
 
 """
 
-import Image
-import numpy as N
+import numpy, logging
+logger = logging.getLogger("pnmimage")
 from fabioimage import fabioimage
 
 SUBFORMATS = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7']
@@ -22,7 +21,8 @@ HEADERITEMS = ['SUBFORMAT', 'DIMENSIONS', 'MAXVAL']
 P7HEADERITEMS = ['WIDTH', 'HEIGHT', 'DEPTH', 'MAXVAL', 'TUPLTYPE', 'ENDHDR']
 
 class pnmimage(fabioimage):
-    def __init__(self):
+    def __init__(self, *arg, **kwargs):
+        fabioimage.__init__(self, *arg, **kwargs)
         fun = getattr(fabioimage, '__init__', lambda x: None)
         fun(self)
         self.data = None
@@ -54,7 +54,7 @@ class pnmimage(fabioimage):
                 s = l.lsplit(' ', 1)
                 if s[0] not in P7HEADERITEMS:
                     raise IOError, ('Illegal pam (netpnm p7) headeritem %s' % s[0])
-                self.self.header[s[0]] = s[1]
+                self.header[s[0]] = s[1]
         else:
             self.header_keys = HEADERITEMS
             for k in self.header_keys[1:]:
@@ -69,72 +69,97 @@ class pnmimage(fabioimage):
         #case construct here!
         m = int(self.header['MAXVAL'])
         if m < 256:
-            self.bytecode = N.uint8
+            self.bytecode = numpy.uint8
         elif m < 65536:
-            self.bytecode = N.uint16
+            self.bytecode = numpy.uint16
         elif m < 2147483648L:
-            self.bytecode = N.uint32
-            warn('32-bit pixels are not really supported by the netpgm standard')
+            self.bytecode = numpy.uint32
+            logger.warning('32-bit pixels are not really supported by the netpgm standard')
         else:
             raise IOError, 'could not figure out what kind of pixels you have'
 
-    def read(self, fname, verbose=0):
+    def read(self, fname, frame=None):
+        """
+        try to read PNM images
+        @param fname: name of the file
+        @param frame: not relevant here! PNM is always single framed
+        """
         self.header = {}
         self.resetvals()
         infile = self._open(fname)
         self._readheader(infile)
 
         #read the image data
-        try:
-            #let the Subformat header field pick the right decoder
-            self.data = eval('self.' + self.header['SUBFORMAT'] + 'dec(infile,self.bytecode)')
-        except ValueError:
-            raise IOError
+        decoder_name = "%sdec" % self.header['SUBFORMAT']
+        if decoder_name in dir(pnmimage):
+            decoder = getattr(pnmimage, decoder_name)
+            self.data = decoder(infile, self.bytecode)
+        else:
+            raise IOError("No decoder named %s for file %s" % (decoder_name, fname))
         self.resetvals()
         return self
 
-    def P1dec(self, buf, bytecode):
-        data = N.zeros((self.dim2, self.dim1))
+    @staticmethod
+    def P1dec(buf, bytecode):
+        data = numpy.zeros((self.dim2, self.dim1))
         i = 0
         for l in buf.readlines():
             try:
-                data[i, :] = N.array(l.split()).astype(bytecode)
+                data[i, :] = numpy.array(l.split()).astype(bytecode)
             except ValueError:
                 raise IOError, 'Size spec in pnm-header does not match size of image data field'
         return data
 
-    def P4dec(self, buf, bytecode):
-        warn('single bit (pbm) images are not supported - yet')
+    @staticmethod
+    def P4dec(buf, bytecode):
+        err = 'single bit (pbm) images are not supported - yet'
+        logger.error(err)
+        raise NotImplementedError(err)
 
-    def P2dec(self, buf, bytecode):
-        data = N.zeros((self.dim2, self.dim1))
+    @staticmethod
+    def P2dec(buf, bytecode):
+        data = numpy.zeros((self.dim2, self.dim1))
         i = 0
         for l in buf.readlines():
             try:
-                data[i, :] = N.array(l.split()).astype(bytecode)
+                data[i, :] = numpy.array(l.split()).astype(bytecode)
             except ValueError:
                 raise IOError, 'Size spec in pnm-header does not match size of image data field'
         return data
 
-    def P5dec(self, buf, bytecode):
+    @staticmethod
+    def P5dec(buf, bytecode):
         l = buf.read()
         try:
-            data = N.reshape(N.fromstring(l, bytecode), [self.dim2, self.dim1]).byteswap()
+            data = numpy.reshape(numpy.fromstring(l, bytecode), [self.dim2, self.dim1]).byteswap()
         except ValueError:
             raise IOError, 'Size spec in pnm-header does not match size of image data field'
         return data
 
-    def P3dec(self, buf, bytecode):
-        #decode (plain-ppm) rgb image
-        pass
+    @staticmethod
+    def P3dec(buf, bytecode):
+        err = '(plain-ppm) RGB images are not supported - yet'
+        logger.error(err)
+        raise NotImplementedError(err)
 
-    def P6dec(self, buf, bytecode):
-        #decode (ppm) rgb image
-        pass
+    @staticmethod
+    def P6dec(buf, bytecode):
+        err = '(ppm) RGB images are not supported - yet'
+        logger.error(err)
+        raise NotImplementedError(err)
 
-    def P7dec(self, buf, bytecode):
-        #decode pam images, i.e. call one of the other decoders
-        pass
+    @staticmethod
+    def P7dec(buf, bytecode):
+        err = '(pam) images are not supported - yet'
+        logger.error(err)
+        raise NotImplementedError(err)
 
-    def write(filename):
-        warn('write pnm images is not implemented yet.')
+    def write(self, filename):
+        raise NotImplementedError('write pnm images is not implemented yet.')
+
+    @staticmethod
+    def checkData(data=None):
+        if data is None:
+            return None
+        else:
+            return data.astype(int)

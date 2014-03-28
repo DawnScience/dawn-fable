@@ -1,7 +1,5 @@
-
-## Automatically adapted for numpy.oldnumeric Oct 05, 2007 by alter_code1.py
-
 #!/usr/bin/env python
+#coding: utf8
 """
 
 Authors: Henning O. Sorensen & Erik Knudsen
@@ -15,14 +13,16 @@ Authors: Henning O. Sorensen & Erik Knudsen
 
 """
 
-import numpy as N, logging
+import numpy, logging
 from fabioimage import fabioimage
-
+logger = logging.getLogger("adscimage")
 
 class adscimage(fabioimage):
     """ Read an image in ADSC format (quite similar to edf?) """
+    def __init__(self, *args, **kwargs):
+        fabioimage.__init__(self, *args, **kwargs)
 
-    def read(self, fname):
+    def read(self, fname, frame=None):
         """ read in the file """
         infile = self._open(fname, "rb")
         try:
@@ -46,24 +46,24 @@ class adscimage(fabioimage):
         self.dim2 = int(self.header['SIZE2'])
         if 'little' in self.header['BYTE_ORDER']:
             try:
-                self.data = N.reshape(
-                    N.fromstring(binary, N.uint16),
+                self.data = numpy.reshape(
+                    numpy.fromstring(binary, numpy.uint16),
                     (self.dim2, self.dim1))
             except ValueError:
                 raise IOError, 'Size spec in ADSC-header does not match ' + \
                     'size of image data field'
-            self.bytecode = N.uint16
-            logging.info("adscimage read in using low byte first (x386-order)")
+            self.bytecode = numpy.uint16
+            logger.info("adscimage read in using low byte first (x386-order)")
         else:
             try:
-                self.data = N.reshape(
-                    N.fromstring(binary, N.uint16),
+                self.data = numpy.reshape(
+                    numpy.fromstring(binary, numpy.uint16),
                     (self.dim2, self.dim1)).byteswap()
             except ValueError:
                 raise IOError, 'Size spec in ADSC-header does not match ' + \
                     'size of image data field'
-            self.bytecode = N.uint16
-            logging.info('adscimage using high byte first (network order)')
+            self.bytecode = numpy.uint16
+            logger.info('adscimage using high byte first (network order)')
         self.resetvals()
         return self
 
@@ -107,10 +107,10 @@ class adscimage(fabioimage):
         # BYTE_ORDER=big_endian;
         # TYPE=unsigned_short;
         if "little" in self.header["BYTE_ORDER"]:
-            outf.write(self.data.astype(N.uint16).tostring())
+            outf.write(self.data.astype(numpy.uint16).tostring())
         else:
             outf.write(self.data.byteswap().astype(
-                    N.uint16).tostring())
+                    numpy.uint16).tostring())
         outf.close()
 
 

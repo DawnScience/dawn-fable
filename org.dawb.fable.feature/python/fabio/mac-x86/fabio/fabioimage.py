@@ -1,4 +1,4 @@
-#!/usr/bin/env python 
+#!/usr/bin/env python
 
 """
 
@@ -8,31 +8,20 @@ Authors: Henning O. Sorensen & Erik Knudsen
          Frederiksborgvej 399
          DK-4000 Roskilde
          email:erik.knudsen@risoe.dk
-         
-         and Jon Wright, ESRF
-         Jerome Kieffer, ESRF
+
+         and Jon Wright, Jerome Kieffer: ESRF
 
 """
-
-import numpy as N, math, os, gzip, bz2, StringIO
-import Image
-import fabioutils
-
-
-
-class fabioStream(StringIO.StringIO):
-    """ 
-    just an interface providing the name anf mode property to a StringIO
-    
-    BugFix for MacOSX
-    """
-    def __init__(self, data, fname=None, mode="r"):
-        StringIO.StringIO.__init__(self, data)
-        if fname == None:
-            self.name = "fabioStream"
-        else:
-            self.name = fname
-        self.mode = mode
+from __future__ import with_statement
+import os, types, logging, sys, tempfile
+logger = logging.getLogger("fabioimage")
+import numpy
+try:
+    import Image
+except ImportError:
+    logger.warning("PIL is not installed ... trying to do without")
+    Image = None
+import fabioutils, converters
 
 
 class fabioimage(object):
@@ -48,18 +37,19 @@ class fabioimage(object):
         """
         Set up initial values
         """
-        if type(data) == type("string"):
+        self._classname = None
+        if type(data) in types.StringTypes:
             raise Exception("fabioimage.__init__ bad argument - " + \
                             "data should be numpy array")
-        self.data = data
+        self.data = self.checkData(data)
         self.pilimage = None
         if header is None:
             self.header = {}
         else:
-            self.header = header
+            self.header = self.checkHeader(header)
         self.header_keys = self.header.keys() # holds key ordering
-        if data is not None:
-            self.dim1, self.dim2 = data.shape
+        if self.data is not None:
+            self.dim2, self.dim1 = self.data.shape
         else:
             self.dim1 = self.dim2 = 0
         self.bytecode = None     # numpy typecode
@@ -67,12 +57,41 @@ class fabioimage(object):
         # cache for image statistics
         self.mean = self.maxval = self.stddev = self.minval = None
         # Cache roi
+        self.roi = None
         self.area_sum = None
         self.slice = None
         # New for multiframe files
         self.nframes = 1
         self.currentframe = 0
         self.filename = None
+        self.filenumber = None
+
+    @staticmethod
+    def checkHeader(header=None):
+        """
+        Empty for fabioimage but may be populated by others classes
+        """
+        if header is None:
+            return {}
+        else:
+            return header
+
+    @staticmethod
+    def checkData(data=None):
+        """
+        Empty for fabioimage but may be populated by others classes, especially for format accepting only integers
+        """
+        return data
+
+    def getclassname(self):
+        """
+        Retrieves the name of the class
+        @return: the name of the class
+        """
+        if self._classname is None:
+            self._classname = str(self.__class__).replace("<class '", "").replace("'>", "").split(".")[-1]
+        return self._classname
+    classname = property(getclassname)
 
     def getframe(self, num):
         """ returns the file numbered 'num' in the series as a fabioimage """
@@ -80,21 +99,20 @@ class fabioimage(object):
             # single image per file
             import openimage
             return openimage.openimage(
-                fabio.jump_filename(self.filename, num))
+                fabioutils.jump_filename(self.filename, num))
         raise Exception("getframe out of range")
 
     def previous(self):
         """ returns the previous file in the series as a fabioimage """
         import openimage
-        return fabio.openimage.openimage(
-            fabio.previous_filename(self.filename))
+        return openimage.openimage(
+            fabioutils.previous_filename(self.filename))
 
     def next(self):
         """ returns the next file in the series as a fabioimage """
         import openimage
         return openimage.openimage(
-            fabio.next_filename(self.filename))
-
+            fabioutils.next_filename(self.filename))
 
     def toPIL16(self, filename=None):
         """
@@ -102,6 +120,8 @@ class fabioimage(object):
 
         FIXME - this should be handled by the libraries now
         """
+        if not Image:
+            raise RuntimeError("PIL is not installed !!! ")
         if filename:
             self.read(filename)
         if self.pilimage is not None:
@@ -121,9 +141,9 @@ class fabioimage(object):
             mode1 = mode2[0]
         else:
             raise Exception("Unknown numpy type " + str(self.data.dtype.type))
-        # 
+        #
         # hack for byteswapping for PIL in MacOS
-        testval = N.array((1, 0), N.uint8).view(N.uint16)[0]
+        testval = numpy.array((1, 0), numpy.uint8).view(numpy.uint16)[0]
         if  testval == 1:
             dats = self.data.tostring()
         elif testval == 256:
@@ -148,18 +168,18 @@ class fabioimage(object):
     def getmax(self):
         """ Find max value in self.data, caching for the future """
         if self.maxval is None:
-            self.maxval = N.max(self.data)
+            self.maxval = self.data.max()
         return self.maxval
 
     def getmin(self):
         """ Find min value in self.data, caching for the future """
         if self.minval is None:
-            self.minval = N.min(self.data)
+            self.minval = self.data.min()
         return self.minval
 
     def make_slice(self, coords):
         """
-        Convert a len(4) set of coords into a len(2) 
+        Convert a len(4) set of coords into a len(2)
         tuple (pair) of slice objects
         the latter are immutable, meaning the roi can be cached
         """
@@ -170,9 +190,9 @@ class fabioimage(object):
                 coords[0:3:2] = [coords[2], coords[0]]
             if coords[1] > coords[3]:
                 coords[1:4:2] = [coords[3], coords[1]]
-            #in fabian: normally coordinates are given as (x,y) whereas 
-            # a matrix is given as row,col 
-            # also the (for whichever reason) the image is flipped upside 
+            #in fabian: normally coordinates are given as (x,y) whereas
+            # a matrix is given as row,col
+            # also the (for whichever reason) the image is flipped upside
             # down wrt to the matrix hence these tranformations
             fixme = (self.dim2 - coords[3] - 1,
                      coords[0] ,
@@ -183,8 +203,8 @@ class fabioimage(object):
 
 
     def integrate_area(self, coords):
-        """ 
-        Sums up a region of interest 
+        """
+        Sums up a region of interest
         if len(coords) == 4 -> convert coords to slices
         if len(coords) == 2 -> use as slices
         floor -> ? removed as unused in the function.
@@ -197,33 +217,36 @@ class fabioimage(object):
         elif len(coords) == 2 and isinstance(coords[0], slice) and \
                                   isinstance(coords[1], slice):
             sli = coords
+
         if sli == self.slice and self.area_sum is not None:
-            return self.area_sum
-        self.slice = sli
-        self.area_sum = N.sum(
-                            N.ravel(
-                                self.data[ self.slice ].astype(N.float)))
+            pass
+        elif sli == self.slice and self.roi is not None:
+            self.area_sum = self.roi.sum(dtype=numpy.float)
+        else:
+            self.slice = sli
+            self.roi = self.data[ self.slice ]
+            self.area_sum = self.roi.sum(dtype=numpy.float)
         return self.area_sum
 
     def getmean(self):
         """ return the mean """
         if self.mean is None:
-            self.mean = N.mean(self.data)
-        return float(self.mean)
+            self.mean = self.data.mean(dtype=numpy.double)
+        return self.mean
 
     def getstddev(self):
         """ return the standard deviation """
         if self.stddev == None:
-            self.stddev = N.std(self.data)
-        return float(self.stddev)
+            self.stddev = self.data.std(dtype=numpy.double)
+        return self.stddev
 
     def add(self, other):
         """
-        Add another Image - warnign, does not clip to 16 bit images by default
+        Add another Image - warning, does not clip to 16 bit images by default
         """
         if not hasattr(other, 'data'):
-            print 'edfimage.add() called with something that ' + \
-                'does not have a data field'
+            logger.warning('edfimage.add() called with something that ' + \
+                'does not have a data field')
         assert self.data.shape == other.data.shape , \
                   'incompatible images - Do they have the same size?'
         self.data = self.data + other.data
@@ -233,34 +256,49 @@ class fabioimage(object):
     def resetvals(self):
         """ Reset cache - call on changing data """
         self.mean = self.stddev = self.maxval = self.minval = None
-        self.area_sum = None
+        self.roi = self.slice = self.area_sum = None
 
-    def rebin(self, x_rebin_fact, y_rebin_fact):
-        """ Rebin the data and adjust dims """
+    def rebin(self, x_rebin_fact, y_rebin_fact, keep_I=True):
+        """
+        Rebin the data and adjust dims
+        @param x_rebin_fact: x binning factor
+        @param y_rebin_fact: y binning factor
+        @param keep_I: shall the signal increase ?
+        @type x_rebin_fact: int
+        @type y_rebin_fact: int
+        @type keep_I: boolean
+
+
+        """
         if self.data == None:
             raise Exception('Please read in the file you wish to rebin first')
-        (mantis_x, exp_x) = math.frexp(x_rebin_fact)
-        (mantis_y, exp_y) = math.frexp(y_rebin_fact)
-        # FIXME - this is a floating point comparison, is it always exact?
-        if (mantis_x != 0.5 or mantis_y != 0.5):
-            raise Exception('Rebin factors not power of 2 not supported (yet)')
-        if int(self.dim1 / x_rebin_fact) * x_rebin_fact != self.dim1 or \
-           int(self.dim2 / x_rebin_fact) * x_rebin_fact != self.dim2 :
-            raise('image size is not divisible by rebin factor - ' + \
+
+        if (self.dim1 % x_rebin_fact != 0) or (self.dim2 % y_rebin_fact != 0):
+            raise RuntimeError('image size is not divisible by rebin factor - ' + \
                   'skipping rebin')
-        pass  ## self.data.savespace(1) # avoid the upcasting behaviour
-        i = 1
-        while i < x_rebin_fact:
-            # FIXME - why do you divide by 2? Rebinning should increase counts?
-            self.data = ((self.data[:, ::2] + self.data[:, 1::2]) / 2)
-            i = i * 2
-        i = 1
-        while i < y_rebin_fact:
-            self.data = ((self.data[::2, :] + self.data[1::2, :]) / 2)
-            i = i * 2
+        else:
+            dataIn = self.data.astype("float64")
+            shapeIn = self.data.shape
+            shapeOut = (shapeIn[0] / y_rebin_fact, shapeIn[1] / x_rebin_fact)
+            binsize = y_rebin_fact * x_rebin_fact
+            if binsize < 50: #method faster for small binning (4x4)
+                out = numpy.zeros(shapeOut, dtype="float64")
+                for j in range(x_rebin_fact):
+                    for i in range(y_rebin_fact):
+                        out += dataIn[i::y_rebin_fact, j::x_rebin_fact]
+            else: #method faster for large binning (8x8)
+                temp = self.data.astype("float64")
+                temp.shape = (shapeOut[0], y_rebin_fact, shapeOut[1], x_rebin_fact)
+                out = temp.sum(axis=3).sum(axis=1)
         self.resetvals()
+        if keep_I:
+            self.data = (out / (y_rebin_fact * x_rebin_fact)).astype(self.data.dtype)
+        else:
+            self.data = out.astype(self.data.dtype)
+
         self.dim1 = self.dim1 / x_rebin_fact
         self.dim2 = self.dim2 / y_rebin_fact
+
         #update header
         self.update_header()
 
@@ -269,6 +307,10 @@ class fabioimage(object):
         To be overwritten - write the file
         """
         raise Exception("Class has not implemented readheader method yet")
+
+    def save(self, fname):
+        'wrapper for write'
+        self.write(fname)
 
     def readheader(self, filename):
         """
@@ -295,21 +337,43 @@ class fabioimage(object):
         """
         self.header.update(kwds)
 
-    def read(self, filename):
+    def read(self, filename, frame=None):
         """
         To be overridden - fill in self.header and self.data
         """
         raise Exception("Class has not implemented read method yet")
+#        return self
+
+    def load(self, *arg, **kwarg):
+        "Wrapper for read"
+        return self.read(*arg, **kwarg)
+
+    def readROI(self, filename, frame=None, coords=None):
+        """
+        Method reading Region of Interest.
+        This implementation is the trivial one, just doing read and crop
+        """
+        self.read(filename, frame)
+        if len(coords) == 4:
+            self.slice = self.make_slice(coords)
+        elif len(coords) == 2 and isinstance(coords[0], slice) and \
+                                  isinstance(coords[1], slice):
+            self.slice = coords
+        else:
+            logger.warning('readROI: Unable to understand Region Of Interest: got %s', coords)
+        self.roi = self.data[ self.slice ]
+        return self.roi
 
 
     def _open(self, fname, mode="rb"):
         """
         Try to handle compressed files, streams, shared memory etc
-        Return an object which can be used for "read" and "write" 
-        ... FIXME - what about seek ? 
+        Return an object which can be used for "read" and "write"
+        ... FIXME - what about seek ?
         """
         fileObject = None
         self.filename = fname
+        self.filenumber = fabioutils.extract_filenumber(fname)
         if hasattr(fname, "read") and hasattr(fname, "write"):
             # It is already something we can use
             return fname
@@ -318,12 +382,12 @@ class fabioimage(object):
             if os.path.splitext(fname)[1] == ".gz":
                 fileObject = self._compressed_stream(fname,
                                        fabioutils.COMPRESSORS['.gz'],
-                                       gzip.GzipFile,
+                                       fabioutils.GzipFile,
                                        mode)
             elif os.path.splitext(fname)[1] == '.bz2':
                 fileObject = self._compressed_stream(fname,
                                        fabioutils.COMPRESSORS['.bz2'],
-                                       bz2.BZ2File,
+                                       fabioutils.BZ2File,
                                        mode)
             #
             # Here we return the file even though it may be bzipped or gzipped
@@ -331,9 +395,9 @@ class fabioimage(object):
             #
             # FIXME - should we fix that or complain about the daft naming?
             else:
-                fileObject = open(fname, mode)
+                fileObject = fabioutils.File(fname, mode)
             if "name" not in dir(fileObject):
-                    fileObject.name = fname
+                fileObject.name = fname
 
         return fileObject
 
@@ -343,7 +407,7 @@ class fabioimage(object):
                            python_uncompress,
                            mode='rb'):
         """
-        Try to transparently handle gzip / bzip without always getting python 
+        Try to transparently handle gzip / bzip without always getting python
         performance
         """
         # assert that python modules are always OK based on performance benchmark
@@ -351,18 +415,66 @@ class fabioimage(object):
         fobj = None
         if self._need_a_real_file and mode[0] == "r":
             fo = python_uncompress(fname, mode)
-            fobj = os.tmpfile()
+#            fobj = os.tmpfile()
+            #problem when not administrator under certain flavors of windows
+            tmpfd, tmpfn = tempfile.mkstemp()
+            os.close(tmpfd)
+            fobj = fabioutils.File(tmpfn, "w+b")
             fobj.write(fo.read())
             fo.close()
             fobj.seek(0)
         elif self._need_a_seek_to_read and mode[0] == "r":
             fo = python_uncompress(fname, mode)
-            fobj = fabioStream(fo.read(), fname, mode)
+            fobj = fabioutils.StringIO(fo.read(), fname, mode)
         else:
             fobj = python_uncompress(fname, mode)
         return fobj
 
-
+    def convert(self, dest):
+        """
+        Convert a fabioimage object into another fabioimage object (with possible conversions)
+        @param dest: destination type "EDF", "edfimage" or the class itself
+        """
+        if type(dest) in types.StringTypes:
+            dest = dest.lower()
+            modules = []
+            for val  in fabioutils.FILETYPES.values():
+                modules += [i + "image" for i in val if i not in modules]
+            klass = None
+            module = None
+            klass_name = None
+            for klass_name in modules:
+                if  klass_name.startswith(dest):
+                    try:
+                        module = sys.modules["fabio." + klass_name]
+                    except KeyError:
+                        try:
+                            module = __import__(klass_name)
+                        except:
+                            logger.error("Failed to import %s", klass_name)
+                        else:
+                            logger.debug("imported %simage", klass_name)
+                    if module is not None:
+                        break
+            if module is not None:
+                if hasattr(module, klass_name):
+                    klass = getattr(module, klass_name)
+                else:
+                    logger.error("Module %s has no image class" % module)
+        elif isinstance(dest, self.__class__):
+            klass = dest.__class__
+        elif ("__new__" in dir(dest)) and isinstance(dest(), fabioimage):
+            klass = dest
+        else:
+            logger.warning("Unrecognized destination format: %s " % dest)
+            return self
+        if klass is None:
+            logger.warning("Unrecognized destination format: %s " % dest)
+            return self
+        other = klass() #temporary instance (to be overwritten)
+        other = klass(data=converters.convert_data(self.classname, other.classname, self.data),
+                    header=converters.convert_header(self.classname, other.classname, self.header))
+        return other
 
 def test():
     """
@@ -371,9 +483,9 @@ def test():
     import time
     start = time.time()
 
-    dat = N.ones((1024, 1024), N.uint16)
-    dat = (dat * 50000).astype(N.uint16)
-    assert dat.dtype.char == N.ones((1), N.uint16).dtype.char
+    dat = numpy.ones((1024, 1024), numpy.uint16)
+    dat = (dat * 50000).astype(numpy.uint16)
+    assert dat.dtype.char == numpy.ones((1), numpy.uint16).dtype.char
     hed = {"Title":"50000 everywhere"}
     obj = fabioimage(dat, hed)
 
@@ -382,7 +494,7 @@ def test():
     assert obj.getmean() == 50000 , obj.getmean()
     assert obj.getstddev() == 0.
 
-    dat2 = N.zeros((1024, 1024), N.uint16, savespace=1)
+    dat2 = numpy.zeros((1024, 1024), numpy.uint16, savespace=1)
     cord = [ 256, 256, 790, 768 ]
     slic = obj.make_slice(cord)
     dat2[slic] = dat2[slic] + 100
@@ -415,7 +527,7 @@ def test():
 
 
     clean()
-
+    import gzip, bz2
     gzip.open("testfile.gz", "wb").write("{ hello }")
     fout = obj._open("testfile.gz")
     readin = fout.read()
