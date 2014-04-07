@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
-import uk.ac.diamond.scisoft.analysis.io.DataHolder;
+import uk.ac.diamond.scisoft.analysis.io.IDataHolder;
 import uk.ac.diamond.scisoft.analysis.io.LoaderFactory;
 import uk.ac.diamond.scisoft.analysis.monitor.IMonitor;
 import fable.framework.navigator.Activator;
@@ -50,13 +50,13 @@ public class FableLoader implements IFableLoader {
 		
 		try {
 			if (name == null) {
-				final DataHolder dh = LoaderFactory.getData(path, mon);
+				final IDataHolder dh = LoaderFactory.getData(path, mon);
 				set = dh.getDataset(0);
 			} else {
 				
 			    set = LoaderFactory.getDataSet(path, name, mon);
 			    if (set==null) {
-			    	final DataHolder dh = LoaderFactory.getData(path, mon);
+			    	final IDataHolder dh = LoaderFactory.getData(path, mon);
 			    	set = dh.getDataset(name);
 			    }
 			
