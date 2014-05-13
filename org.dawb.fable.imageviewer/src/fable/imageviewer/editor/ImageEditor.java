@@ -55,11 +55,11 @@ import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.part.EditorPart;
 import org.eclipse.ui.part.FileEditorInput;
 import org.embl.cca.utils.threading.ExecutableManager;
+import org.embl.cca.utils.datahandling.file.WildCardFileFilter;
 import org.embl.cca.utils.imageviewer.FilenameCaseInsensitiveComparator;
 import org.embl.cca.utils.imageviewer.MemoryImageEditorInput;
 import org.embl.cca.utils.threading.TrackableJob;
 import org.embl.cca.utils.threading.TrackableRunnable;
-import org.embl.cca.utils.imageviewer.WildCardFileFilter;
 
 import fable.framework.logging.FableLogger;
 import fable.imageviewer.component.ActionsProvider;
