@@ -14,4 +14,3 @@ Import-Package: fable.imageviewer.internal,
  org.dawb.common.util.test
 Export-Package: fable.imageviewer.tests.gui
 Bundle-ActivationPolicy: lazy
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
