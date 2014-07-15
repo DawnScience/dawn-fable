@@ -89,7 +89,7 @@ This Agreement is governed by the laws of the State of New York and the intellec
       <update label="dawb p2" url="http://svn.codespot.com/a/eclipselabs.org/dawb/p2/org.dawb.workbench.p2"/>
    </url>
 
-     <plugin
+   <plugin
          id="org.dawb.fabio"
          download-size="0"
          install-size="0"
@@ -144,5 +144,17 @@ This Agreement is governed by the laws of the State of New York and the intellec
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-  
+
+   <plugin
+         id="org.lwjgl.opengl"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
+   <plugin
+         id="org.dawb.jep"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"/>
+
 </feature>
