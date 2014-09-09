@@ -11,7 +11,7 @@ package org.dawb.fable.extensions;
 
 import java.util.List;
 
-import uk.ac.diamond.scisoft.analysis.dataset.AbstractDataset;
+import uk.ac.diamond.scisoft.analysis.dataset.Dataset;
 import uk.ac.diamond.scisoft.analysis.dataset.DatasetUtils;
 import uk.ac.diamond.scisoft.analysis.dataset.FloatDataset;
 import uk.ac.diamond.scisoft.analysis.dataset.IDataset;
@@ -37,17 +37,17 @@ public class FableImageWrapper implements IFableImage {
 		this.height   = shape[0];
 		this.width    = shape[1];
 		
-		FloatDataset fSet = (FloatDataset)DatasetUtils.cast((AbstractDataset)set, AbstractDataset.FLOAT32);
+		FloatDataset fSet = (FloatDataset)DatasetUtils.cast(set, Dataset.FLOAT32);
 		this.image = fSet.getData();
-			
+
 		set  = null;
 		fSet = null;
 
 	}
 
 	public FableImageWrapper(final String fileName, 
-			                 final AbstractDataset data,
-			                 final List<AbstractDataset> axes,
+			                 final Dataset data,
+			                 final List<? extends Dataset> axes,
 			                 final long time) {
 		
 		this.fileName = fileName;
@@ -55,7 +55,7 @@ public class FableImageWrapper implements IFableImage {
 		this.height   = axes.get(0).getSize();
 		this.width    = axes.get(1).getSize();
 		
-		FloatDataset fSet = (FloatDataset)data.cast(AbstractDataset.FLOAT32);
+		FloatDataset fSet = (FloatDataset)data.cast(Dataset.FLOAT32);
 		this.image = fSet.getData();
 			
 	}
